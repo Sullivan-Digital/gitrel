@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -59,16 +61,11 @@ func main() {
 		},
 	}
 
-	var currentCmd = &cobra.Command{
-		Use:   "current",
-		Short: "Show the highest version from existing release branches",
+	var statusCmd = &cobra.Command{
+		Use:   "status",
+		Short: "Show the current version and the 5 most recent versions",
 		Run: func(cmd *cobra.Command, args []string) {
-			highestVersion := getHighestVersion()
-			if highestVersion == "0.0.0" {
-				fmt.Println("No existing release branches found.")
-			} else {
-				fmt.Println("Current highest version:", highestVersion)
-			}
+			showStatus()
 		},
 	}
 
@@ -96,7 +93,7 @@ func main() {
 
 	newCmd.AddCommand(newVersionCmd, newMajorCmd, newMinorCmd, newPatchCmd)
 	checkoutCmd.AddCommand(checkoutVersionCmd, checkoutLatestCmd)
-	rootCmd.AddCommand(listCmd, newCmd, currentCmd, checkoutCmd)
+	rootCmd.AddCommand(listCmd, newCmd, statusCmd, checkoutCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -113,4 +110,35 @@ func incrementAndCreateBranch(part string) {
 	}
 
 	createReleaseBranch(newVersion)
+}
+
+func showStatus() {
+	releaseBranches, err := getRemoteReleaseBranches()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var versions []string
+	for _, branch := range releaseBranches {
+		version := strings.TrimPrefix(branch, "release/")
+		if validateSemver(version) {
+			versions = append(versions, version)
+		}
+	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		return compareSemver(versions[i], versions[j])
+	})
+
+	if len(versions) == 0 {
+		fmt.Println("No existing release branches found.")
+		return
+	}
+
+	fmt.Println("Current highest version:", versions[len(versions)-1])
+	fmt.Println("Recent versions:")
+	for i := len(versions) - 1; i >= 0 && i >= len(versions)-5; i-- {
+		fmt.Println(versions[i])
+	}
 }
