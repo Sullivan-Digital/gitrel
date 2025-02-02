@@ -73,15 +73,29 @@ func main() {
 	}
 
 	var checkoutCmd = &cobra.Command{
-		Use:   "checkout <version>",
-		Short: "Checkout the latest release branch matching the specified version prefix",
+		Use:   "checkout",
+		Short: "Checkout a release branch",
+	}
+
+	var checkoutVersionCmd = &cobra.Command{
+		Use:   "<version>",
+		Short: "Checkout the release branch matching the specified version prefix",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			checkoutVersion(args[0])
 		},
 	}
 
+	var checkoutLatestCmd = &cobra.Command{
+		Use:   "latest",
+		Short: "Checkout the latest release branch",
+		Run: func(cmd *cobra.Command, args []string) {
+			checkoutVersion("latest")
+		},
+	}
+
 	newCmd.AddCommand(newVersionCmd, newMajorCmd, newMinorCmd, newPatchCmd)
+	checkoutCmd.AddCommand(checkoutVersionCmd, checkoutLatestCmd)
 	rootCmd.AddCommand(listCmd, newCmd, currentCmd, checkoutCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
