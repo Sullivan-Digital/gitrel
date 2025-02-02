@@ -158,6 +158,26 @@ func checkoutVersion(prefix string, fetch bool) {
 	}
 }
 
+// Function to find the current branch and determine the version
+func getCurrentVersionFromBranch() string {
+	output, err := execCommand("git", "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		fmt.Println("Error finding current branch:", err)
+		return "unknown"
+	}
+
+	branchName := strings.TrimSpace(output)
+	if strings.HasPrefix(branchName, "release/") {
+		version := strings.TrimPrefix(branchName, "release/")
+		if validateSemver(version) {
+			return version
+		}
+		return "unknown"
+	}
+
+	return fmt.Sprintf("(%s)", branchName)
+}
+
 // Function to show status
 func showStatus(fetch bool) {
 	releaseBranches, err := getReleaseBranches(fetch)
@@ -183,14 +203,18 @@ func showStatus(fetch bool) {
 		return
 	}
 
-	fmt.Println("Current version:", versions[len(versions)-1])
+	currentVersion := getCurrentVersionFromBranch()
+	fmt.Println("Current version:", currentVersion)
+	fmt.Println("Latest version:", versions[len(versions)-1])
 	fmt.Println("Previous versions:")
 	const maxVersions = 5
 	for i := len(versions) - 2; i >= 0 && i >= len(versions)-maxVersions; i-- {
 		fmt.Printf(" - %s\n", versions[i])
 	}
 
-	fmt.Printf("(%d more...)\n", len(versions)-maxVersions)
+	if len(versions) > maxVersions {
+		fmt.Printf("(%d more...)\n", len(versions)-maxVersions)
+	}
 }
 
 // Function to increment and create a new branch
