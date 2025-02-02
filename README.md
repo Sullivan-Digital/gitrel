@@ -1,3 +1,16 @@
+# GitRel
+
+GitRel is a command-line tool designed to help manage git release branches efficiently. It provides commands to list, create, and checkout release branches, as well as increment version numbers following semantic versioning.
+
+## Installation
+
+To install GitRel, clone the repository and use `go install` to build the tool:
+
+```bash
+git clone <repository-url>
+cd <repository-directory>
+go install .
+```
 
 Replace `<repository-url>` and `<repository-directory>` with the actual URL and directory name of your repository.
 
