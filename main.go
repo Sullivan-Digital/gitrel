@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -19,14 +17,17 @@ func main() {
 		Use:   "list",
 		Short: "List current release branches",
 		Run: func(cmd *cobra.Command, args []string) {
-			listReleaseBranches()
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			listReleaseBranches(fetch)
 		},
 	}
+	listCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before listing branches")
 
 	var newCmd = &cobra.Command{
 		Use:   "new",
 		Short: "Create a new release branch",
 	}
+	newCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before creating a new branch")
 
 	var newVersionCmd = &cobra.Command{
 		Use:   "<version>",
@@ -41,7 +42,8 @@ func main() {
 		Use:   "major",
 		Short: "Increment the major version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
-			incrementAndCreateBranch("major")
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			incrementAndCreateBranch("major", fetch)
 		},
 	}
 
@@ -49,7 +51,8 @@ func main() {
 		Use:   "minor",
 		Short: "Increment the minor version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
-			incrementAndCreateBranch("minor")
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			incrementAndCreateBranch("minor", fetch)
 		},
 	}
 
@@ -57,7 +60,8 @@ func main() {
 		Use:   "patch",
 		Short: "Increment the patch version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
-			incrementAndCreateBranch("patch")
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			incrementAndCreateBranch("patch", fetch)
 		},
 	}
 
@@ -65,21 +69,25 @@ func main() {
 		Use:   "status",
 		Short: "Show the current version and the 5 most recent versions",
 		Run: func(cmd *cobra.Command, args []string) {
-			showStatus()
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			showStatus(fetch)
 		},
 	}
+	statusCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before showing status")
 
 	var checkoutCmd = &cobra.Command{
 		Use:   "checkout",
 		Short: "Checkout a release branch",
 	}
+	checkoutCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before checking out")
 
 	var checkoutVersionCmd = &cobra.Command{
 		Use:   "<version>",
 		Short: "Checkout the release branch matching the specified version prefix",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			checkoutVersion(args[0])
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			checkoutVersion(args[0], fetch)
 		},
 	}
 
@@ -87,7 +95,8 @@ func main() {
 		Use:   "latest",
 		Short: "Checkout the latest release branch",
 		Run: func(cmd *cobra.Command, args []string) {
-			checkoutVersion("latest")
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			checkoutVersion("latest", fetch)
 		},
 	}
 
@@ -97,48 +106,5 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}
-}
-
-func incrementAndCreateBranch(part string) {
-	highestVersion := getHighestVersion()
-	newVersion := ""
-	if highestVersion == "0.0.0" {
-		newVersion = "0.1.0"
-	} else {
-		newVersion = incrementVersion(highestVersion, part)
-	}
-
-	createReleaseBranch(newVersion)
-}
-
-func showStatus() {
-	releaseBranches, err := getRemoteReleaseBranches()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var versions []string
-	for _, branch := range releaseBranches {
-		version := strings.TrimPrefix(branch, "release/")
-		if validateSemver(version) {
-			versions = append(versions, version)
-		}
-	}
-
-	sort.Slice(versions, func(i, j int) bool {
-		return compareSemver(versions[i], versions[j])
-	})
-
-	if len(versions) == 0 {
-		fmt.Println("No existing release branches found.")
-		return
-	}
-
-	fmt.Println("Current highest version:", versions[len(versions)-1])
-	fmt.Println("Recent versions:")
-	for i := len(versions) - 1; i >= 0 && i >= len(versions)-5; i-- {
-		fmt.Println(versions[i])
 	}
 }

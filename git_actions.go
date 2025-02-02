@@ -15,22 +15,24 @@ func execCommand(command string, args ...string) (string, error) {
 	return string(output), err
 }
 
-// Function to fetch and parse remote branches
-func getRemoteReleaseBranches() ([]string, error) {
-	fmt.Println("Fetching from remote...")
-	_, err := execCommand("git", "fetch", "--all")
-	if err != nil {
-		return nil, fmt.Errorf("error fetching from remote: %w", err)
+// Function to fetch and parse branches
+func getReleaseBranches(fetch bool) ([]string, error) {
+	if fetch {
+		fmt.Println("Fetching from remote...")
+		_, err := execCommand("git", "fetch", "--all")
+		if err != nil {
+			return nil, fmt.Errorf("error fetching from remote: %w", err)
+		}
 	}
 
 	output, err := execCommand("git", "branch", "-r")
 	if err != nil {
-		return nil, fmt.Errorf("error listing remote branches: %w", err)
+		return nil, fmt.Errorf("error listing branches: %w", err)
 	}
 
-	remoteBranches := strings.Split(output, "\n")
+	branches := strings.Split(output, "\n")
 	var releaseBranches []string
-	for _, branch := range remoteBranches {
+	for _, branch := range branches {
 		if strings.Contains(branch, "origin/release/") {
 			releaseBranches = append(releaseBranches, strings.TrimSpace(strings.Replace(branch, "origin/", "", 1)))
 		}
@@ -40,8 +42,8 @@ func getRemoteReleaseBranches() ([]string, error) {
 }
 
 // Function to list release branches
-func listReleaseBranches() {
-	releaseBranches, err := getRemoteReleaseBranches()
+func listReleaseBranches(fetch bool) {
+	releaseBranches, err := getReleaseBranches(fetch)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -98,8 +100,8 @@ func createReleaseBranch(version string) {
 }
 
 // Function to get the highest version from release branches
-func getHighestVersion() string {
-	releaseBranches, err := getRemoteReleaseBranches()
+func getHighestVersion(fetch bool) string {
+	releaseBranches, err := getReleaseBranches(fetch)
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -124,8 +126,8 @@ func getHighestVersion() string {
 }
 
 // Function to checkout the latest release branch matching the specified version prefix
-func checkoutVersion(prefix string) {
-	releaseBranches, err := getRemoteReleaseBranches()
+func checkoutVersion(prefix string, fetch bool) {
+	releaseBranches, err := getReleaseBranches(fetch)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -154,4 +156,49 @@ func checkoutVersion(prefix string) {
 	if err != nil {
 		fmt.Println("Error checking out branch:", err)
 	}
+}
+
+// Function to show status
+func showStatus(fetch bool) {
+	releaseBranches, err := getReleaseBranches(fetch)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var versions []string
+	for _, branch := range releaseBranches {
+		version := strings.TrimPrefix(branch, "release/")
+		if validateSemver(version) {
+			versions = append(versions, version)
+		}
+	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		return compareSemver(versions[i], versions[j])
+	})
+
+	if len(versions) == 0 {
+		fmt.Println("No existing release branches found.")
+		return
+	}
+
+	fmt.Println("Current highest version:", versions[len(versions)-1])
+	fmt.Println("Recent versions:")
+	for i := len(versions) - 1; i >= 0 && i >= len(versions)-5; i-- {
+		fmt.Println(versions[i])
+	}
+}
+
+// Function to increment and create a new branch
+func incrementAndCreateBranch(part string, fetch bool) {
+	highestVersion := getHighestVersion(fetch)
+	newVersion := ""
+	if highestVersion == "0.0.0" {
+		newVersion = "0.1.0"
+	} else {
+		newVersion = incrementVersion(highestVersion, part)
+	}
+
+	createReleaseBranch(newVersion)
 }
