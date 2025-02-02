@@ -22,7 +22,12 @@ func main() {
 	}
 
 	var newCmd = &cobra.Command{
-		Use:   "new <version>",
+		Use:   "new",
+		Short: "Create a new release branch",
+	}
+
+	var newVersionCmd = &cobra.Command{
+		Use:   "<version>",
 		Short: "Create a new release branch with the specified version",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -30,7 +35,7 @@ func main() {
 		},
 	}
 
-	var majorCmd = &cobra.Command{
+	var newMajorCmd = &cobra.Command{
 		Use:   "major",
 		Short: "Increment the major version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -38,7 +43,7 @@ func main() {
 		},
 	}
 
-	var minorCmd = &cobra.Command{
+	var newMinorCmd = &cobra.Command{
 		Use:   "minor",
 		Short: "Increment the minor version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -46,7 +51,7 @@ func main() {
 		},
 	}
 
-	var patchCmd = &cobra.Command{
+	var newPatchCmd = &cobra.Command{
 		Use:   "patch",
 		Short: "Increment the patch version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -76,7 +81,8 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(listCmd, newCmd, majorCmd, minorCmd, patchCmd, currentCmd, checkoutCmd)
+	newCmd.AddCommand(newVersionCmd, newMajorCmd, newMinorCmd, newPatchCmd)
+	rootCmd.AddCommand(listCmd, newCmd, currentCmd, checkoutCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
