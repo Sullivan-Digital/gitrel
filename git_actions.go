@@ -183,11 +183,14 @@ func showStatus(fetch bool) {
 		return
 	}
 
-	fmt.Println("Current highest version:", versions[len(versions)-1])
-	fmt.Println("Recent versions:")
-	for i := len(versions) - 1; i >= 0 && i >= len(versions)-5; i-- {
-		fmt.Println(versions[i])
+	fmt.Println("Current version:", versions[len(versions)-1])
+	fmt.Println("Previous versions:")
+	const maxVersions = 5
+	for i := len(versions) - 2; i >= 0 && i >= len(versions)-maxVersions; i-- {
+		fmt.Printf(" - %s\n", versions[i])
 	}
+
+	fmt.Printf("(%d more...)\n", len(versions)-maxVersions)
 }
 
 // Function to increment and create a new branch
