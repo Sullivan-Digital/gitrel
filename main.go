@@ -34,7 +34,12 @@ func main() {
 		Short: "Create a new release branch with the specified version",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			createReleaseBranch(args[0])
+			version := args[0]
+			if !validateSemver(version) {
+				fmt.Println("Error: Invalid version format. Please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
+				os.Exit(1)
+			}
+			createReleaseBranch(version)
 		},
 	}
 

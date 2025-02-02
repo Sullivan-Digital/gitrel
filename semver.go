@@ -9,29 +9,42 @@ import (
 
 // Function to validate semver format
 func validateSemver(version string) bool {
-	re := regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+)?(\+[0-9A-Za-z-]+)?$`)
+	re := regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-]+)?$`)
 	return re.MatchString(version)
 }
 
 // Function to increment version
 func incrementVersion(version, part string) string {
-	parts := strings.Split(version, ".")
-	major := parts[0]
-	minor := parts[1]
-	patch := parts[2]
+	parts := strings.Split(version, "-")
+	baseVersion := parts[0]
+	preRelease := ""
+	if len(parts) > 1 {
+		preRelease = parts[1]
+	}
+
+	baseParts := strings.Split(baseVersion, ".")
+	major := baseParts[0]
+	minor := baseParts[1]
+	patch := baseParts[2]
 
 	switch part {
 	case "major":
 		major = fmt.Sprintf("%d", atoi(major)+1)
 		minor = "0"
 		patch = "0"
+		preRelease = ""
 	case "minor":
 		minor = fmt.Sprintf("%d", atoi(minor)+1)
 		patch = "0"
+		preRelease = ""
 	case "patch":
 		patch = fmt.Sprintf("%d", atoi(patch)+1)
+		preRelease = ""
 	}
 
+	if preRelease != "" {
+		return fmt.Sprintf("%s.%s.%s-%s", major, minor, patch, preRelease)
+	}
 	return fmt.Sprintf("%s.%s.%s", major, minor, patch)
 }
 
