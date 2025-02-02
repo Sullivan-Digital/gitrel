@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use:   "git-tool",
+		Use:   "gitrel",
 		Short: "A tool to manage git release branches",
 	}
 
