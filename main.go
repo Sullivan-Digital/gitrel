@@ -7,21 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Function to display help message
-func showHelp() {
-	fmt.Println("Usage: <command> [options]")
-	fmt.Println()
-	fmt.Println("Commands:")
-	fmt.Println("  help       Show this help message and exit")
-	fmt.Println("  list       List current release branches (fetches from remote first)")
-	fmt.Println("  new <ver>  Create a new release branch with the specified version")
-	fmt.Println("  major      Increment the major version of the latest release")
-	fmt.Println("  minor      Increment the minor version of the latest release")
-	fmt.Println("  patch      Increment the patch version of the latest release")
-	fmt.Println("  current    Show the highest version from existing release branches")
-	fmt.Println("  checkout <ver> Checkout the latest release branch matching the specified version prefix")
-}
-
 func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "git-tool",
