@@ -132,17 +132,19 @@ func main() {
 	var checkoutCmd = &cobra.Command{
 		Use:   "checkout",
 		Short: "Checkout a release branch",
+		Args:  cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			fetch, _ := cmd.Flags().GetBool("fetch")
+			checkoutVersion(args[0], fetch, remote)
+			showStatus(false, remote)
+		},
 	}
+
 	checkoutCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before checking out")
 
 	var checkoutVersionCmd = &cobra.Command{
 		Use:   "<version>",
 		Short: "Checkout the release branch matching the specified version prefix",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			fetch, _ := cmd.Flags().GetBool("fetch")
-			checkoutVersion(args[0], fetch, remote)
-		},
 	}
 
 	var checkoutLatestCmd = &cobra.Command{
@@ -151,6 +153,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
 			checkoutVersion("latest", fetch, remote)
+			showStatus(false, remote)
 		},
 	}
 
