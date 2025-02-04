@@ -29,7 +29,7 @@ func initConfig() {
 	viper.AddConfigPath("$HOME")
 
 	err = viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
+	if err != nil {            // Handle errors reading the config file
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
 }
@@ -70,6 +70,18 @@ func main() {
 	var newCmd = &cobra.Command{
 		Use:   "new",
 		Short: "Create a new release branch",
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 1 {
+				version := args[0]
+				if !validateSemver(version) {
+					fmt.Println("Error: Invalid version format. Please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
+					os.Exit(1)
+				}
+				createReleaseBranch(version)
+			} else {
+				cmd.Help()
+			}
+		},
 	}
 	newCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before creating a new branch")
 
