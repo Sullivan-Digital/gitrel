@@ -35,15 +35,24 @@ func main() {
 	initConfig()
 
 	alwaysFetch := viper.GetBool("alwaysFetch")
-	remote := viper.GetString("remote")
-	if remote == "" {
-		remote = "origin"
+	defaultRemote := viper.GetString("remote")
+	if defaultRemote == "" {
+		defaultRemote = "origin"
 	}
+
+	var remote string
 
 	var rootCmd = &cobra.Command{
 		Use:   "gitrel",
 		Short: "A tool to manage git release branches",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if remote == "" {
+				remote = defaultRemote
+			}
+		},
 	}
+
+	rootCmd.PersistentFlags().StringVar(&remote, "remote", "", "Specify the git remote name (overrides config)")
 
 	var listCmd = &cobra.Command{
 		Use:   "list",

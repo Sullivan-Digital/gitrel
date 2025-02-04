@@ -9,6 +9,10 @@ GitRel can be configured using a `.gitrelrc` file. The configuration file can be
 - `alwaysFetch=true|false`: If set to true, the `--fetch` flag will be presumed for all commands that accept it.
 - `remote=<git remote name>`: Specifies the git remote name to use. Defaults to `origin` if not set.
 
+## Global Flags
+
+- `--remote`: Specify the git remote name to use for the command. This flag overrides the remote specified in the `.gitrelrc` file.
+
 ## Installation
 
 To install GitRel, clone the repository and use `go install` to build the tool:
