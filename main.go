@@ -3,11 +3,43 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
+func initConfig() {
+	viper.SetConfigName(".gitrelrc")
+	viper.SetConfigType("ini")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME")
+
+	// Look up the directory tree
+	dir, err := os.Getwd()
+	if err == nil {
+		for {
+			viper.AddConfigPath(dir)
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+			dir = parent
+		}
+	}
+
+	viper.ReadInConfig()
+}
+
 func main() {
+	initConfig()
+
+	alwaysFetch := viper.GetBool("alwaysFetch")
+	remote := viper.GetString("remote")
+	if remote == "" {
+		remote = "origin"
+	}
+
 	var rootCmd = &cobra.Command{
 		Use:   "gitrel",
 		Short: "A tool to manage git release branches",
@@ -18,7 +50,10 @@ func main() {
 		Short: "List current release branches",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			listReleaseBranches(fetch)
+			if alwaysFetch {
+				fetch = true
+			}
+			listReleaseBranches(fetch, remote)
 		},
 	}
 	listCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before listing branches")

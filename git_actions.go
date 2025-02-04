@@ -16,10 +16,10 @@ func execCommand(command string, args ...string) (string, error) {
 }
 
 // Function to fetch and parse branches
-func getReleaseBranches(fetch bool) ([]string, error) {
+func getReleaseBranches(fetch bool, remote string) ([]string, error) {
 	if fetch {
-		fmt.Println("Fetching from remote...")
-		_, err := execCommand("git", "fetch", "--all")
+		fmt.Printf("Fetching from remote '%s'...\n", remote)
+		_, err := execCommand("git", "fetch", remote)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching from remote: %w", err)
 		}
@@ -33,8 +33,8 @@ func getReleaseBranches(fetch bool) ([]string, error) {
 	branches := strings.Split(output, "\n")
 	var releaseBranches []string
 	for _, branch := range branches {
-		if strings.Contains(branch, "origin/release/") {
-			releaseBranches = append(releaseBranches, strings.TrimSpace(strings.Replace(branch, "origin/", "", 1)))
+		if strings.Contains(branch, remote+"/release/") {
+			releaseBranches = append(releaseBranches, strings.TrimSpace(strings.Replace(branch, remote+"/", "", 1)))
 		}
 	}
 
@@ -42,8 +42,8 @@ func getReleaseBranches(fetch bool) ([]string, error) {
 }
 
 // Function to list release branches
-func listReleaseBranches(fetch bool) {
-	releaseBranches, err := getReleaseBranches(fetch)
+func listReleaseBranches(fetch bool, remote string) {
+	releaseBranches, err := getReleaseBranches(fetch, remote)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -101,7 +101,7 @@ func createReleaseBranch(version string) {
 
 // Function to get the highest version from release branches
 func getHighestVersion(fetch bool) string {
-	releaseBranches, err := getReleaseBranches(fetch)
+	releaseBranches, err := getReleaseBranches(fetch, "origin")
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -127,7 +127,7 @@ func getHighestVersion(fetch bool) string {
 
 // Function to checkout the latest release branch matching the specified version prefix
 func checkoutVersion(prefix string, fetch bool) {
-	releaseBranches, err := getReleaseBranches(fetch)
+	releaseBranches, err := getReleaseBranches(fetch, "origin")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -180,7 +180,7 @@ func getCurrentVersionFromBranch() string {
 
 // Function to show status
 func showStatus(fetch bool) {
-	releaseBranches, err := getReleaseBranches(fetch)
+	releaseBranches, err := getReleaseBranches(fetch, "origin")
 	if err != nil {
 		fmt.Println(err)
 		return
