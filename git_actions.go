@@ -207,7 +207,7 @@ func getCurrentVersionFromBranch() string {
 	output, err := execCommand("git", "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil {
 		fmt.Println("Error finding current branch:", err)
-		return "unknown"
+		return ""
 	}
 
 	branchName := strings.TrimSpace(output)
@@ -216,10 +216,11 @@ func getCurrentVersionFromBranch() string {
 		if validateSemver(version) {
 			return version
 		}
-		return "unknown"
+
+		return ""
 	}
 
-	return fmt.Sprintf("(%s)", branchName)
+	return ""
 }
 
 // Function to show status
@@ -258,7 +259,11 @@ func showStatus(fetch bool, remote string) {
 	}
 
 	currentVersion := getCurrentVersionFromBranch()
-	fmt.Println("Current version:", currentVersion)
+
+	if currentVersion != "" {
+		fmt.Println("Current version:", currentVersion)
+	}
+
 	fmt.Println("Latest version:", versions[len(versions)-1])
 	fmt.Println("Remote:", remote)
 	fmt.Println("Previous versions:")
