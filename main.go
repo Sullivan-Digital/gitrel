@@ -11,9 +11,7 @@ import (
 
 func initConfig() {
 	viper.SetConfigName(".gitrelrc")
-	viper.SetConfigType("ini")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("$HOME")
+	viper.SetConfigType("env")
 
 	// Look up the directory tree
 	dir, err := os.Getwd()
@@ -28,7 +26,12 @@ func initConfig() {
 		}
 	}
 
-	viper.ReadInConfig()
+	viper.AddConfigPath("$HOME")
+
+	err = viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
+		panic(fmt.Errorf("fatal error config file: %w", err))
+	}
 }
 
 func main() {

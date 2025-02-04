@@ -244,12 +244,14 @@ func showStatus(fetch bool, remote string) {
 
 	if len(versions) == 0 {
 		fmt.Println("No existing release branches found.")
+		fmt.Println("Remote:", remote)
 		return
 	}
 
 	currentVersion := getCurrentVersionFromBranch()
 	fmt.Println("Current version:", currentVersion)
 	fmt.Println("Latest version:", versions[len(versions)-1])
+	fmt.Println("Remote:", remote)
 	fmt.Println("Previous versions:")
 	const maxVersions = 5
 	for i := len(versions) - 2; i >= 0 && i >= len(versions)-maxVersions; i-- {
