@@ -17,6 +17,7 @@ func initConfig() {
 	dir, err := os.Getwd()
 	if err == nil {
 		for {
+			fmt.Println("Adding config path:", dir)
 			viper.AddConfigPath(dir)
 			parent := filepath.Dir(dir)
 			if parent == dir {
@@ -27,6 +28,8 @@ func initConfig() {
 	}
 
 	viper.AddConfigPath("$HOME")
+
+	err = viper.ReadInConfig()
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 		return
 	}
