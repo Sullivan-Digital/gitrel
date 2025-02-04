@@ -77,7 +77,7 @@ func main() {
 					fmt.Println("Error: Invalid version format. Please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 					os.Exit(1)
 				}
-				createReleaseBranch(version)
+				createReleaseBranch(version, remote)
 			} else {
 				cmd.Help()
 			}
@@ -95,7 +95,7 @@ func main() {
 				fmt.Println("Error: Invalid version format. Please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 				os.Exit(1)
 			}
-			createReleaseBranch(version)
+			createReleaseBranch(version, remote)
 		},
 	}
 

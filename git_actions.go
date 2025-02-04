@@ -86,7 +86,16 @@ func branchExists(version string) bool {
 }
 
 // Function to create a new release branch
-func createReleaseBranch(version string) {
+func createReleaseBranch(version string, remote string) {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
 	if !validateSemver(version) {
 		fmt.Println("Error: Invalid version format. Please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 		os.Exit(1)
@@ -104,7 +113,7 @@ func createReleaseBranch(version string) {
 		return
 	}
 
-	_, err = execCommand("git", "push", "origin", "release/"+version)
+	_, err = execCommand("git", "push", remote, "release/"+version)
 	if err != nil {
 		fmt.Println("Error pushing branch:", err)
 		return
@@ -273,7 +282,7 @@ func incrementAndCreateBranch(part string, fetch bool, remote string) {
 		newVersion = incrementVersion(highestVersion, part)
 	}
 
-	createReleaseBranch(newVersion)
+	createReleaseBranch(newVersion, remote)
 }
 
 // Function to list git remotes
