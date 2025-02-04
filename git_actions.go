@@ -17,6 +17,14 @@ func execCommand(command string, args ...string) (string, error) {
 
 // Function to fetch and parse branches
 func getReleaseBranches(fetch bool, remote string) ([]string, error) {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if fetch {
 		fmt.Printf("Fetching from remote '%s'...\n", remote)
 		_, err := execCommand("git", "fetch", remote)
@@ -43,6 +51,15 @@ func getReleaseBranches(fetch bool, remote string) ([]string, error) {
 
 // Function to list release branches
 func listReleaseBranches(fetch bool, remote string) {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
 	releaseBranches, err := getReleaseBranches(fetch, remote)
 	if err != nil {
 		fmt.Println(err)
@@ -100,8 +117,17 @@ func createReleaseBranch(version string) {
 }
 
 // Function to get the highest version from release branches
-func getHighestVersion(fetch bool) string {
-	releaseBranches, err := getReleaseBranches(fetch, "origin")
+func getHighestVersion(fetch bool, remote string) string {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+	}
+
+	releaseBranches, err := getReleaseBranches(fetch, remote)
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -126,8 +152,17 @@ func getHighestVersion(fetch bool) string {
 }
 
 // Function to checkout the latest release branch matching the specified version prefix
-func checkoutVersion(prefix string, fetch bool) {
-	releaseBranches, err := getReleaseBranches(fetch, "origin")
+func checkoutVersion(prefix string, fetch bool, remote string) {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	releaseBranches, err := getReleaseBranches(fetch, remote)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -179,8 +214,17 @@ func getCurrentVersionFromBranch() string {
 }
 
 // Function to show status
-func showStatus(fetch bool) {
-	releaseBranches, err := getReleaseBranches(fetch, "origin")
+func showStatus(fetch bool, remote string) {
+	if remote == "" {
+		var err error
+		remote, err = getDefaultRemote()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	releaseBranches, err := getReleaseBranches(fetch, remote)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -218,8 +262,8 @@ func showStatus(fetch bool) {
 }
 
 // Function to increment and create a new branch
-func incrementAndCreateBranch(part string, fetch bool) {
-	highestVersion := getHighestVersion(fetch)
+func incrementAndCreateBranch(part string, fetch bool, remote string) {
+	highestVersion := getHighestVersion(fetch, remote)
 	newVersion := ""
 	if highestVersion == "0.0.0" {
 		newVersion = "0.1.0"
@@ -228,4 +272,24 @@ func incrementAndCreateBranch(part string, fetch bool) {
 	}
 
 	createReleaseBranch(newVersion)
+}
+
+// Function to list git remotes
+func getDefaultRemote() (string, error) {
+	output, err := execCommand("git", "remote")
+	if err != nil {
+		return "", fmt.Errorf("error listing git remotes: %w", err)
+	}
+
+	remotes := strings.Split(strings.TrimSpace(output), "\n")
+
+	if len(remotes) == 0 {
+		return "", fmt.Errorf("no remotes found")
+	}
+
+	if len(remotes) > 1 {
+		return "", fmt.Errorf("multiple remotes found, please specify one")
+	}
+
+	return remotes[0], nil
 }

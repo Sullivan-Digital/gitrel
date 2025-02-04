@@ -36,9 +36,6 @@ func main() {
 
 	alwaysFetch := viper.GetBool("alwaysFetch")
 	defaultRemote := viper.GetString("remote")
-	if defaultRemote == "" {
-		defaultRemote = "origin"
-	}
 
 	var remote string
 
@@ -92,7 +89,7 @@ func main() {
 		Short: "Increment the major version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			incrementAndCreateBranch("major", fetch)
+			incrementAndCreateBranch("major", fetch, remote)
 		},
 	}
 
@@ -101,7 +98,7 @@ func main() {
 		Short: "Increment the minor version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			incrementAndCreateBranch("minor", fetch)
+			incrementAndCreateBranch("minor", fetch, remote)
 		},
 	}
 
@@ -110,7 +107,7 @@ func main() {
 		Short: "Increment the patch version of the latest release",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			incrementAndCreateBranch("patch", fetch)
+			incrementAndCreateBranch("patch", fetch, remote)
 		},
 	}
 
@@ -119,7 +116,7 @@ func main() {
 		Short: "Show the current version and the 5 most recent versions",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			showStatus(fetch)
+			showStatus(fetch, remote)
 		},
 	}
 	statusCmd.PersistentFlags().Bool("fetch", false, "Fetch from remote before showing status")
@@ -136,7 +133,7 @@ func main() {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			checkoutVersion(args[0], fetch)
+			checkoutVersion(args[0], fetch, remote)
 		},
 	}
 
@@ -145,7 +142,7 @@ func main() {
 		Short: "Checkout the latest release branch",
 		Run: func(cmd *cobra.Command, args []string) {
 			fetch, _ := cmd.Flags().GetBool("fetch")
-			checkoutVersion("latest", fetch)
+			checkoutVersion("latest", fetch, remote)
 		},
 	}
 
