@@ -17,7 +17,6 @@ func initConfig() {
 	dir, err := os.Getwd()
 	if err == nil {
 		for {
-			fmt.Println("Adding config path:", dir)
 			viper.AddConfigPath(dir)
 			parent := filepath.Dir(dir)
 			if parent == dir {
