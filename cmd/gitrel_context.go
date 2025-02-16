@@ -3,19 +3,19 @@ package cmd
 import (
 	"errors"
 	"gitrel/config"
+	"gitrel/context"
 	"gitrel/git"
 	"gitrel/utils"
-	"gitrel/context"
 )
 
-var commandContext *context.CommandContext
+var commandContext context.CommandContext
 
-func getCommandContext() (*context.CommandContext, error) {
+func getCommandContext() (context.CommandContext, error) {
 	if commandContext != nil {
 		return commandContext, nil
 	}
 
-	ctx := context.CommandContext{}
+	ctx := CmdCommandContext{}
 
 	if FetchFlag && NoFetchFlag {
 		return nil, errors.New("cannot use both --fetch and --no-fetch")
@@ -29,7 +29,7 @@ func getCommandContext() (*context.CommandContext, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		ctx.Remote = remote
 	}
 
@@ -38,4 +38,27 @@ func getCommandContext() (*context.CommandContext, error) {
 
 	commandContext = &ctx
 	return &ctx, nil
+}
+
+type CmdCommandContext struct {
+	Fetch            bool
+	Remote           string
+	LocalBranchName  string
+	RemoteBranchName string
+}
+
+func (c *CmdCommandContext) GetFetch() bool {
+	return c.Fetch
+}
+
+func (c *CmdCommandContext) GetRemote() string {
+	return c.Remote
+}
+
+func (c *CmdCommandContext) GetLocalBranchName() string {
+	return c.LocalBranchName
+}
+
+func (c *CmdCommandContext) GetRemoteBranchName() string {
+	return c.RemoteBranchName
 }

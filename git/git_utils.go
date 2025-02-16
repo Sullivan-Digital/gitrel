@@ -10,10 +10,10 @@ import (
 )
 
 // Function to fetch and parse branches
-func getReleases(ctx *context.CommandContext) ([]*ReleaseInfo, error) {
-	if ctx.Fetch {
-		fmt.Printf("Fetching from remote '%s'...\n", ctx.Remote)
-		_, err := execCommand("git", "fetch", ctx.Remote)
+func getReleases(ctx context.CommandContext) ([]*ReleaseInfo, error) {
+	if ctx.GetFetch() {
+		fmt.Printf("Fetching from remote '%s'...\n", ctx.GetRemote())
+		_, err := execCommand("git", "fetch", ctx.GetRemote())
 		if err != nil {
 			return nil, fmt.Errorf("error fetching from remote: %w", err)
 		}
@@ -24,8 +24,8 @@ func getReleases(ctx *context.CommandContext) ([]*ReleaseInfo, error) {
 		return nil, fmt.Errorf("error listing branches: %w", err)
 	}
 
-	remoteBranchPattern := ctx.Remote + "/" + ctx.RemoteBranchName
-	localBranchPattern := ctx.LocalBranchName
+	remoteBranchPattern := ctx.GetRemote() + "/" + ctx.GetRemoteBranchName()
+	localBranchPattern := ctx.GetLocalBranchName()
 
 	branches := strings.Split(output, "\n")
 	releaseMap := make(map[string]*ReleaseInfo)

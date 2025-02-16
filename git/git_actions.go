@@ -17,7 +17,7 @@ func execCommand(command string, args ...string) (string, error) {
 }
 
 // Function to list release branches
-func ListReleases(ctx *context.CommandContext) ([]string, error) {
+func ListReleases(ctx context.CommandContext) ([]string, error) {
 	releaseBranches, err := getReleases(ctx)
 	if err != nil {
 		return nil, err
@@ -32,8 +32,8 @@ func ListReleases(ctx *context.CommandContext) ([]string, error) {
 }
 
 // Function to check if a branch already exists
-func branchExists(version string, ctx *context.CommandContext) bool {
-	branchName := replaceInBranchPattern(ctx.LocalBranchName, version)
+func branchExists(version string, ctx context.CommandContext) bool {
+	branchName := replaceInBranchPattern(ctx.GetLocalBranchName(), version)
 	output, _ := execCommand("git", "branch", "--list", branchName)
 	if strings.Contains(output, branchName) {
 		return true
@@ -44,13 +44,13 @@ func branchExists(version string, ctx *context.CommandContext) bool {
 }
 
 // Function to create a new release branch
-func CreateReleaseBranch(version string, ctx *context.CommandContext) error {
+func CreateReleaseBranch(version string, ctx context.CommandContext) error {
 	if !semver.ValidateSemver(version) {
 		return fmt.Errorf("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 	}
 
-	localBranchName := replaceInBranchPattern(ctx.LocalBranchName, version)
-	remoteBranchName := replaceInBranchPattern(ctx.RemoteBranchName, version)
+	localBranchName := replaceInBranchPattern(ctx.GetLocalBranchName(), version)
+	remoteBranchName := replaceInBranchPattern(ctx.GetRemoteBranchName(), version)
 
 	if branchExists(version, ctx) {
 		return fmt.Errorf("branch %s already exists", localBranchName)
@@ -62,7 +62,7 @@ func CreateReleaseBranch(version string, ctx *context.CommandContext) error {
 		return err
 	}
 
-	_, err = execCommand("git", "push", ctx.Remote, localBranchName+":"+remoteBranchName)
+	_, err = execCommand("git", "push", ctx.GetRemote(), localBranchName+":"+remoteBranchName)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func CreateReleaseBranch(version string, ctx *context.CommandContext) error {
 }
 
 // Function to get the highest version from release branches
-func getHighestVersion(ctx *context.CommandContext) string {
+func getHighestVersion(ctx context.CommandContext) string {
 	releases, err := getReleases(ctx)
 	if err != nil {
 		fmt.Println(err)
@@ -102,7 +102,7 @@ func getHighestVersion(ctx *context.CommandContext) string {
 }
 
 // Function to checkout the latest release branch matching the specified version prefix
-func CheckoutVersion(prefix string, ctx *context.CommandContext) {
+func CheckoutVersion(prefix string, ctx context.CommandContext) {
 	releases, err := getReleases(ctx)
 	if err != nil {
 		fmt.Println(err)
@@ -156,7 +156,7 @@ func getCurrentVersionFromBranch() string {
 }
 
 // Function to show status
-func ShowStatus(ctx *context.CommandContext) {
+func ShowStatus(ctx context.CommandContext) {
 	releases, err := getReleases(ctx)
 	if err != nil {
 		fmt.Println(err)
@@ -177,7 +177,7 @@ func ShowStatus(ctx *context.CommandContext) {
 
 	if len(versions) == 0 {
 		fmt.Println("No existing release branches found.")
-		fmt.Println("Remote:", ctx.Remote)
+		fmt.Println("Remote:", ctx.GetRemote())
 		return
 	}
 
@@ -188,7 +188,7 @@ func ShowStatus(ctx *context.CommandContext) {
 	}
 
 	fmt.Println("Latest version:", versions[len(versions)-1])
-	fmt.Println("Remote:", ctx.Remote)
+	fmt.Println("Remote:", ctx.GetRemote())
 	fmt.Println("Previous versions:")
 	const maxVersions = 5
 	for i := len(versions) - 2; i >= 0 && i >= len(versions)-maxVersions; i-- {
@@ -201,7 +201,7 @@ func ShowStatus(ctx *context.CommandContext) {
 }
 
 // Function to increment and create a new branch
-func IncrementAndCreateBranch(part string, ctx *context.CommandContext) {
+func IncrementAndCreateBranch(part string, ctx context.CommandContext) {
 	highestVersion := getHighestVersion(ctx)
 	newVersion := ""
 	if highestVersion == "0.0.0" {
