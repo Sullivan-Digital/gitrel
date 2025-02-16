@@ -16,12 +16,17 @@ var checkoutLatestCmd = &cobra.Command{
 			return err
 		}
 
-		return runCheckoutLatestCmd(ctx)
+		runCheckoutLatestCmd(ctx)
+		return nil
 	},
 }
 
-func runCheckoutLatestCmd(ctx interfaces.GitRelContext) error {
-	git.CheckoutVersion("latest", ctx)
+func runCheckoutLatestCmd(ctx interfaces.GitRelContext) {
+	err := git.CheckoutVersion("latest", ctx)
+	if err != nil {
+		ctx.Output().Println(err)
+		return
+	}
+
 	git.ShowStatus(ctx)
-	return nil
 }

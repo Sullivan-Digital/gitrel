@@ -1,6 +1,9 @@
 package gitrel_test
 
-import "gitrel/interfaces"
+import (
+	"gitrel/interfaces"
+	"testing"
+)
 
 type TestGitRelContext struct {
 	GitContext *TestGitContext
@@ -8,11 +11,11 @@ type TestGitRelContext struct {
 	OutputContext *TestOutputContext
 }
 
-func DefaultTestGitRelContext() *TestGitRelContext {
+func DefaultTestGitRelContext(t *testing.T) *TestGitRelContext {
 	return &TestGitRelContext{
-		GitContext: DefaultTestGitContext(),
+		GitContext: DefaultTestGitContext(t),
 		CommandContext: DefaultTestCommandContext(),
-		OutputContext: DefaultTestOutputContext(),
+		OutputContext: DefaultTestOutputContext(t),
 	}
 }
 

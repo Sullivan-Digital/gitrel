@@ -56,11 +56,10 @@ func CreateReleaseBranch(version string, ctx interfaces.GitRelContext) error {
 }
 
 // Function to checkout the latest release branch matching the specified version prefix
-func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) {
+func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) error {
 	releases, err := getReleases(ctx)
 	if err != nil {
-		ctx.Output().Println(err)
-		return
+		return err
 	}
 
 	var matchingReleases []*ReleaseInfo
@@ -71,8 +70,7 @@ func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) {
 	}
 
 	if len(matchingReleases) == 0 {
-		ctx.Output().Printf("No release branches found matching prefix: %s\n", prefix)
-		return
+		return fmt.Errorf("no release branches found matching prefix: %s", prefix)
 	}
 
 	sort.Slice(matchingReleases, func(i, j int) bool {
@@ -82,18 +80,13 @@ func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) {
 	latestRelease := matchingReleases[len(matchingReleases)-1]
 	branch := latestRelease.GetFirstLocalBranch()
 	if branch != nil {
-		ctx.Output().Printf("Checking out release branch: %s\n", branch)
-		err = ctx.Git().CheckoutBranch(branch.BranchName)
-		if err != nil {
-			ctx.Output().Println("Error checking out branch:", err)
-			return
-		}
+		ctx.Output().Printf("Checking out release branch: %s\n", branch.BranchName)
+		return ctx.Git().CheckoutBranch(branch.BranchName)
 	}
 
 	remoteBranch := latestRelease.GetFirstRemoteBranch()
 	if remoteBranch == nil {
-		ctx.Output().Printf("No release branches found for matching version: %s\n", prefix)
-		return
+		return fmt.Errorf("no release branches found for matching version: %s", prefix)
 	}
 
 	localBranchName := replaceInBranchPattern(ctx.Options().GetLocalBranchName(), latestRelease.Version)
@@ -101,15 +94,15 @@ func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) {
 
 	err = ctx.Git().CheckoutBranch(remoteBranch.BranchName)
 	if err != nil {
-		ctx.Output().Println("Error checking out branch:", err)
-		return
+		return err
 	}
 
 	err = ctx.Git().SwitchToNewBranch(localBranchName)
 	if err != nil {
-		ctx.Output().Println("Error creating local branch:", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 // Function to show status

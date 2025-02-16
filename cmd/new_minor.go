@@ -17,11 +17,11 @@ var newMinorCmd = &cobra.Command{
 			return err
 		}
 
-		return runNewMinorCmd(ctx)
+		runNewMinorCmd(ctx)
+		return nil
 	},
 }
 
-func runNewMinorCmd(ctx interfaces.GitRelContext) error {
+func runNewMinorCmd(ctx interfaces.GitRelContext) {
 	git.IncrementAndCreateBranch("minor", ctx)
-	return nil
 }

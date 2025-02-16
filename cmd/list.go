@@ -16,14 +16,16 @@ var listCmd = &cobra.Command{
 			return err
 		}
 
-		return runListCmd(ctx)
+		runListCmd(ctx)
+		return nil
 	},
 }
 
-func runListCmd(ctx interfaces.GitRelContext) error {
+func runListCmd(ctx interfaces.GitRelContext) {
 	releaseBranches, err := git.ListReleases(ctx)
 	if err != nil {
-		return err
+		ctx.Output().Println(err)
+		return
 	}
 
 	ctx.Output().Println("Current release branches:")
@@ -34,6 +36,4 @@ func runListCmd(ctx interfaces.GitRelContext) error {
 			ctx.Output().Println(branch.Version)
 		}
 	}
-
-	return nil
 }

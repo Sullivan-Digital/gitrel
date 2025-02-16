@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"gitrel/git"
 	"gitrel/interfaces"
 	"gitrel/semver"
@@ -18,7 +17,8 @@ var newCmd = &cobra.Command{
 			return err
 		}
 
-		return runNewCmd(cmd, args, ctx)
+		runNewCmd(cmd, args, ctx)
+		return nil
 	},
 }
 
@@ -29,17 +29,15 @@ func init() {
 	newCmd.AddCommand(newPatchCmd)
 }
 
-func runNewCmd(cmd *cobra.Command, args []string, ctx interfaces.GitRelContext) error {
+func runNewCmd(cmd *cobra.Command, args []string, ctx interfaces.GitRelContext) {
 	if len(args) != 1 {
-		return cmd.Help()
+		cmd.Help()
 	}
 
 	version := args[0]
 	if !semver.ValidateSemver(version) {
-		return errors.New("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
+		ctx.Output().Println("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 	}
 
 	git.CreateReleaseBranch(version, ctx)
-
-	return nil
 }

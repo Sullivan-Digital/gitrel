@@ -17,11 +17,11 @@ var newMajorCmd = &cobra.Command{
 			return err
 		}
 
-		return runNewMajorCmd(ctx)
+		runNewMajorCmd(ctx)
+		return nil	
 	},
 }
 
-func runNewMajorCmd(ctx interfaces.GitRelContext) error {
+func runNewMajorCmd(ctx interfaces.GitRelContext) {
 	git.IncrementAndCreateBranch("major", ctx)
-	return nil
 }

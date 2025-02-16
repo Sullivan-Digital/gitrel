@@ -3,6 +3,8 @@ package gitrel_test
 import (
 	"fmt"
 	"slices"
+	"strings"
+	"testing"
 )
 
 type TestGitContext struct {
@@ -11,9 +13,10 @@ type TestGitContext struct {
 	PreviousBranch string
 	Remotes        []string
 	SideEffects    []TestGitSideEffect
+	testCtx        *testing.T
 }
 
-func DefaultTestGitContext() *TestGitContext {
+func DefaultTestGitContext(t *testing.T) *TestGitContext {
 	return &TestGitContext{
 		Branches: []string{
 			"main",
@@ -23,7 +26,7 @@ func DefaultTestGitContext() *TestGitContext {
 			"release/1.1.0",
 			"release/1.1.1",
 			"release/2.0.0",
-			"remotes/origin/master",
+			"remotes/origin/main",
 			"remotes/origin/release/1.0.0",
 			"remotes/origin/release/1.0.1",
 			"remotes/origin/release/1.0.2",
@@ -35,6 +38,7 @@ func DefaultTestGitContext() *TestGitContext {
 		PreviousBranch: "",
 		Remotes:        []string{"origin"},
 		SideEffects:    []TestGitSideEffect{},
+		testCtx:        t,
 	}
 }
 
@@ -92,4 +96,45 @@ func (c *TestGitContext) GetCurrentBranch() (string, error) {
 
 func (c *TestGitContext) ListRemotes() ([]string, error) {
 	return c.Remotes, nil
+}
+
+func (c *TestGitContext) AssertNoSideEffects() {
+	c.testCtx.Helper()
+	if len(c.SideEffects) != 0 {
+		c.testCtx.Fatalf("expected no side effects, got %s", formatSideEffects(c.SideEffects))
+	}
+}
+
+func (c *TestGitContext) AssertSideEffectCount(expected int) {
+	c.testCtx.Helper()
+	if len(c.SideEffects) != expected {
+		c.testCtx.Fatalf("expected %d side effects, got %d: %s", expected, len(c.SideEffects), formatSideEffects(c.SideEffects))
+	}
+}
+
+func (c *TestGitContext) AssertSideEffectContains(expected TestGitSideEffect) {
+	c.testCtx.Helper()
+	if !slices.Contains(c.SideEffects, expected) {
+		c.testCtx.Fatalf("expected side effects to contain '%s', but got %s", expected, formatSideEffects(c.SideEffects))
+	}
+}
+
+func (c *TestGitContext) AssertSideEffectsAreExactly(expected ...TestGitSideEffect) {
+	c.testCtx.Helper()
+
+	if !slices.Equal(c.SideEffects, expected) {
+		c.testCtx.Fatal(strings.Join([]string{
+			"expected different side effects from what was executed",
+			"expect: " + formatSideEffects(expected),
+			"actual: " + formatSideEffects(c.SideEffects),
+		}, "\n"))
+	}
+}
+
+func formatSideEffects(sideEffects []TestGitSideEffect) string {
+	formatted := []string{}
+	for _, sideEffect := range sideEffects {
+		formatted = append(formatted, fmt.Sprintf("'%s'", sideEffect))
+	}
+	return fmt.Sprintf("[%s]", strings.Join(formatted, ", "))
 }

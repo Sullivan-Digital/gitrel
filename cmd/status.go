@@ -16,11 +16,11 @@ var statusCmd = &cobra.Command{
 			return err
 		}
 
-		return runStatusCmd(ctx)
+		runStatusCmd(ctx)
+		return nil
 	},
 }
 
-func runStatusCmd(ctx interfaces.GitRelContext) error {
+func runStatusCmd(ctx interfaces.GitRelContext) {
 	git.ShowStatus(ctx)
-	return nil
 }

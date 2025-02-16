@@ -17,11 +17,11 @@ var newPatchCmd = &cobra.Command{
 			return err
 		}
 
-		return runNewPatchCmd(ctx)
+		runNewPatchCmd(ctx)
+		return nil
 	},
 }
 
-func runNewPatchCmd(ctx interfaces.GitRelContext) error {
+func runNewPatchCmd(ctx interfaces.GitRelContext) {
 	git.IncrementAndCreateBranch("patch", ctx)
-	return nil
 }

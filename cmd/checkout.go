@@ -19,7 +19,8 @@ var checkoutCmd = &cobra.Command{
 		}
 
 
-		return runCheckoutCmd(args, ctx)
+		runCheckoutCmd(args, ctx)
+		return nil
 	},
 }
 
@@ -28,8 +29,7 @@ func init() {
 	checkoutCmd.AddCommand(checkoutLatestCmd)
 }
 
-func runCheckoutCmd(args []string, ctx interfaces.GitRelContext) error {
+func runCheckoutCmd(args []string, ctx interfaces.GitRelContext) {
 	git.CheckoutVersion(args[0], ctx)
 	git.ShowStatus(ctx)
-	return nil
 }

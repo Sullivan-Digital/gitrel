@@ -21,15 +21,3 @@ func EffectSwitchBack() TestGitSideEffect {
 func EffectPushBranch(remote string, branch string) TestGitSideEffect {
 	return TestGitSideEffect("push " + remote + " " + branch)
 }
-
-type TestGitActionList []TestGitSideEffect
-
-func (l TestGitActionList) ContainsAction(action TestGitSideEffect) bool {
-	for _, a := range l {
-		if a == action {
-			return true
-		}
-	}
-
-	return false
-}

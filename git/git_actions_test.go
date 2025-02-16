@@ -9,7 +9,7 @@ import (
 func TestListReleases_ReturnsListOfReleases(t *testing.T) {
 
 	// Arrange
-	ctx := gitrel_test.DefaultTestGitRelContext()
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
 	ctx.CommandContext.Fetch = false
 
 	// Act
@@ -49,7 +49,7 @@ func TestListReleases_ReturnsListOfReleases(t *testing.T) {
 func TestListReleases_IncludesLocalOnlyReleases(t *testing.T) {
 
 	// Arrange
-	ctx := gitrel_test.DefaultTestGitRelContext()
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
 	ctx.CommandContext.Fetch = false
 
 	ctx.GitContext.Branches = append(ctx.GitContext.Branches, "release/3.0.0")
@@ -92,7 +92,7 @@ func TestListReleases_IncludesLocalOnlyReleases(t *testing.T) {
 func TestListReleases_ShowRemoteOnlyReleasesButDontMark(t *testing.T) {
 
 	// Arrange
-	ctx := gitrel_test.DefaultTestGitRelContext()
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
 	ctx.CommandContext.Fetch = false
 
 	ctx.GitContext.Branches = append(ctx.GitContext.Branches, "remotes/origin/release/3.0.0")
@@ -135,7 +135,7 @@ func TestListReleases_ShowRemoteOnlyReleasesButDontMark(t *testing.T) {
 func TestListReleases_FetchFromRemoteBeforeListing(t *testing.T) {
 
 	// Arrange
-	ctx := gitrel_test.DefaultTestGitRelContext()
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
 	ctx.CommandContext.Fetch = true
 
 	// Act
