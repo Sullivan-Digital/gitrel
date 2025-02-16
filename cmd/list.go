@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"fmt"
 	"gitrel/git"
+	"gitrel/interfaces"
 
 	"github.com/spf13/cobra"
 )
@@ -11,22 +11,29 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List current release branches",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		gitCtx := git.NewCmdGitContext()
-		ctx, err := getCommandContext(gitCtx)
+		ctx, err := NewCmdGitRelContext()
 		if err != nil {
 			return err
 		}
 
-		releaseBranches, err := git.ListReleases(ctx, gitCtx)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("Current release branches:")
-		for _, branch := range releaseBranches {
-			fmt.Println(branch)
-		}
-
-		return nil
+		return runListCmd(ctx)
 	},
+}
+
+func runListCmd(ctx interfaces.GitRelContext) error {
+	releaseBranches, err := git.ListReleases(ctx)
+	if err != nil {
+		return err
+	}
+
+	ctx.Output().Println("Current release branches:")
+	for _, branch := range releaseBranches {
+		if branch.IsLocalOnly() {
+			ctx.Output().Println(branch.Version + " (local only)")
+		} else {
+			ctx.Output().Println(branch.Version)
+		}
+	}
+
+	return nil
 }

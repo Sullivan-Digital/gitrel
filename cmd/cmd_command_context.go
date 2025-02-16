@@ -3,14 +3,14 @@ package cmd
 import (
 	"errors"
 	"gitrel/config"
-	"gitrel/context"
 	"gitrel/git"
+	"gitrel/interfaces"
 	"gitrel/utils"
 )
 
-var commandContext context.CommandContext
+var commandContext interfaces.CommandContext
 
-func getCommandContext(gitCtx git.GitContext) (context.CommandContext, error) {
+func getCommandContext(gitCtx interfaces.GitContext) (interfaces.CommandContext, error) {
 	if commandContext != nil {
 		return commandContext, nil
 	}

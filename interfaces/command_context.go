@@ -1,4 +1,4 @@
-package context
+package interfaces
 
 type CommandContext interface {
 	GetFetch() bool

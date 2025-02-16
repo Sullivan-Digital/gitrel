@@ -2,29 +2,29 @@ package git
 
 import (
 	"fmt"
-	"gitrel/context"
+	"gitrel/interfaces"
 	"gitrel/semver"
 	"gitrel/utils"
 	"sort"
 )
 
 // Function to fetch and parse branches
-func getReleases(ctx context.CommandContext, gitCtx GitContext) ([]*ReleaseInfo, error) {
-	if ctx.GetFetch() {
-		fmt.Printf("Fetching from remote '%s'...\n", ctx.GetRemote())
-		err := gitCtx.FetchRemote(ctx.GetRemote())
+func getReleases(ctx interfaces.GitRelContext) ([]*ReleaseInfo, error) {
+	if ctx.Options().GetFetch() {
+		ctx.Output().Printf("Fetching from remote '%s'...\n", ctx.Options().GetRemote())
+		err := ctx.Git().FetchRemote(ctx.Options().GetRemote())
 		if err != nil {
 			return nil, fmt.Errorf("error fetching from remote: %w", err)
 		}
 	}
 
-	branches, err := gitCtx.ListAllBranches()
+	branches, err := ctx.Git().ListAllBranches()
 	if err != nil {
 		return nil, fmt.Errorf("error listing branches: %w", err)
 	}
 
-	remoteBranchPattern := "remotes/" + ctx.GetRemote() + "/" + ctx.GetRemoteBranchName()
-	localBranchPattern := ctx.GetLocalBranchName()
+	remoteBranchPattern := "remotes/" + ctx.Options().GetRemote() + "/" + ctx.Options().GetRemoteBranchName()
+	localBranchPattern := ctx.Options().GetLocalBranchName()
 
 	releaseMap := make(map[string]*ReleaseInfo)
 	for _, branch := range branches {
@@ -66,10 +66,10 @@ func getReleases(ctx context.CommandContext, gitCtx GitContext) ([]*ReleaseInfo,
 }
 
 // Function to get the highest version from release branches
-func getHighestVersion(ctx context.CommandContext, gitCtx GitContext) string {
-	releases, err := getReleases(ctx, gitCtx)
+func getHighestVersion(ctx interfaces.GitRelContext) string {
+	releases, err := getReleases(ctx)
 	if err != nil {
-		fmt.Println(err)
+		ctx.Output().Println(err)
 		return ""
 	}
 
@@ -92,16 +92,16 @@ func getHighestVersion(ctx context.CommandContext, gitCtx GitContext) string {
 }
 
 // Function to find the current branch and determine the version
-func getCurrentVersionFromBranch(ctx context.CommandContext, gitCtx GitContext) string {
-	branchName, err := gitCtx.GetCurrentBranch()
+func getCurrentVersionFromBranch(ctx interfaces.GitRelContext) string {
+	branchName, err := ctx.Git().GetCurrentBranch()
 	if err != nil {
-		fmt.Println("Error finding current branch:", err)
+		ctx.Output().Println("Error finding current branch:", err)
 		return ""
 	}
 
-	version := getVersionFromBranch(branchName, ctx.GetLocalBranchName())
+	version := getVersionFromBranch(branchName, ctx.Options().GetLocalBranchName())
 	if version == "" {
-		version = getVersionFromBranch(branchName, ctx.GetRemoteBranchName())
+		version = getVersionFromBranch(branchName, ctx.Options().GetRemoteBranchName())
 	}
 
 	return version

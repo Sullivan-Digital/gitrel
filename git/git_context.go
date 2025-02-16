@@ -5,18 +5,6 @@ import (
 	"strings"
 )
 
-type GitContext interface {
-	FetchRemote(remote string) error
-	ListAllBranches() ([]string, error)
-	BranchExists(branchName string) (bool, error)
-	CheckoutBranch(branchName string) error
-	SwitchToNewBranch(branchName string) error
-	SwitchBack() error
-	PushBranch(remote string, branchSpec string) error
-	GetCurrentBranch() (string, error)
-	ListRemotes() ([]string, error)
-}
-
 type CmdGitContext struct{}
 
 func NewCmdGitContext() *CmdGitContext {
@@ -37,6 +25,8 @@ func (c *CmdGitContext) ListAllBranches() ([]string, error) {
 	rawBranches := strings.Split(output, "\n")
 	branches := make([]string, 0, len(rawBranches))
 	for _, branch := range rawBranches {
+		branch = strings.TrimPrefix(branch, "*")
+		
 		if branch != "" {
 			branches = append(branches, strings.TrimSpace(branch))
 		}

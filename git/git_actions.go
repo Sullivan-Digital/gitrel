@@ -2,42 +2,32 @@ package git
 
 import (
 	"fmt"
-	"gitrel/context"
+	"gitrel/interfaces"
 	"gitrel/semver"
 	"sort"
 	"strings"
 )
 
 // Function to list release branches
-func ListReleases(ctx context.CommandContext, gitCtx GitContext) ([]string, error) {
-	releaseBranches, err := getReleases(ctx, gitCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	versions := make([]string, len(releaseBranches))
-	for i, release := range releaseBranches {
-		versions[i] = release.Version
-	}
-
-	return versions, nil
+func ListReleases(ctx interfaces.GitRelContext) ([]*ReleaseInfo, error) {
+	return getReleases(ctx)
 }
 
 // Function to create a new release branch
-func CreateReleaseBranch(version string, ctx context.CommandContext, gitCtx GitContext) error {
+func CreateReleaseBranch(version string, ctx interfaces.GitRelContext) error {
 	if !semver.ValidateSemver(version) {
 		return fmt.Errorf("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 	}
 
-	localBranchName := replaceInBranchPattern(ctx.GetLocalBranchName(), version)
-	remoteBranchName := replaceInBranchPattern("remotes/"+ctx.GetRemote()+"/"+ctx.GetRemoteBranchName(), version)
+	localBranchName := replaceInBranchPattern(ctx.Options().GetLocalBranchName(), version)
+	remoteBranchName := replaceInBranchPattern("remotes/"+ctx.Options().GetRemote()+"/"+ctx.Options().GetRemoteBranchName(), version)
 
-	localExists, err := gitCtx.BranchExists(localBranchName)
+	localExists, err := ctx.Git().BranchExists(localBranchName)
 	if err != nil {
 		return fmt.Errorf("error checking if branch exists: %w", err)
 	}
 
-	remoteExists, err := gitCtx.BranchExists(remoteBranchName)
+	remoteExists, err := ctx.Git().BranchExists(remoteBranchName)
 	if err != nil {
 		return fmt.Errorf("error checking if branch exists: %w", err)
 	}
@@ -46,18 +36,18 @@ func CreateReleaseBranch(version string, ctx context.CommandContext, gitCtx GitC
 		return fmt.Errorf("branch %s already exists", localBranchName)
 	}
 
-	fmt.Printf("Creating new release branch: %s\n", localBranchName)
-	err = gitCtx.SwitchToNewBranch(localBranchName)
+	ctx.Output().Printf("Creating new release branch: %s\n", localBranchName)
+	err = ctx.Git().SwitchToNewBranch(localBranchName)
 	if err != nil {
 		return err
 	}
 
-	err = gitCtx.PushBranch(ctx.GetRemote(), localBranchName+":"+remoteBranchName)
+	err = ctx.Git().PushBranch(ctx.Options().GetRemote(), localBranchName+":"+remoteBranchName)
 	if err != nil {
 		return err
 	}
 
-	err = gitCtx.SwitchBack()
+	err = ctx.Git().SwitchBack()
 	if err != nil {
 		return err
 	}
@@ -66,10 +56,10 @@ func CreateReleaseBranch(version string, ctx context.CommandContext, gitCtx GitC
 }
 
 // Function to checkout the latest release branch matching the specified version prefix
-func CheckoutVersion(prefix string, ctx context.CommandContext, gitCtx GitContext) {
-	releases, err := getReleases(ctx, gitCtx)
+func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) {
+	releases, err := getReleases(ctx)
 	if err != nil {
-		fmt.Println(err)
+		ctx.Output().Println(err)
 		return
 	}
 
@@ -81,7 +71,7 @@ func CheckoutVersion(prefix string, ctx context.CommandContext, gitCtx GitContex
 	}
 
 	if len(matchingReleases) == 0 {
-		fmt.Printf("No release branches found matching prefix: %s\n", prefix)
+		ctx.Output().Printf("No release branches found matching prefix: %s\n", prefix)
 		return
 	}
 
@@ -92,41 +82,41 @@ func CheckoutVersion(prefix string, ctx context.CommandContext, gitCtx GitContex
 	latestRelease := matchingReleases[len(matchingReleases)-1]
 	branch := latestRelease.GetFirstLocalBranch()
 	if branch != nil {
-		fmt.Printf("Checking out release branch: %s\n", branch)
-		err = gitCtx.CheckoutBranch(branch.BranchName)
+		ctx.Output().Printf("Checking out release branch: %s\n", branch)
+		err = ctx.Git().CheckoutBranch(branch.BranchName)
 		if err != nil {
-			fmt.Println("Error checking out branch:", err)
+			ctx.Output().Println("Error checking out branch:", err)
 			return
 		}
 	}
 
 	remoteBranch := latestRelease.GetFirstRemoteBranch()
 	if remoteBranch == nil {
-		fmt.Printf("No release branches found for matching version: %s\n", prefix)
+		ctx.Output().Printf("No release branches found for matching version: %s\n", prefix)
 		return
 	}
 
-	localBranchName := replaceInBranchPattern(ctx.GetLocalBranchName(), latestRelease.Version)
-	fmt.Printf("Creating local branch %s from remote branch %s\n", localBranchName, remoteBranch.BranchName)
+	localBranchName := replaceInBranchPattern(ctx.Options().GetLocalBranchName(), latestRelease.Version)
+	ctx.Output().Printf("Creating local branch %s from remote branch %s\n", localBranchName, remoteBranch.BranchName)
 
-	err = gitCtx.CheckoutBranch(remoteBranch.BranchName)
+	err = ctx.Git().CheckoutBranch(remoteBranch.BranchName)
 	if err != nil {
-		fmt.Println("Error checking out branch:", err)
+		ctx.Output().Println("Error checking out branch:", err)
 		return
 	}
 
-	err = gitCtx.SwitchToNewBranch(localBranchName)
+	err = ctx.Git().SwitchToNewBranch(localBranchName)
 	if err != nil {
-		fmt.Println("Error creating local branch:", err)
+		ctx.Output().Println("Error creating local branch:", err)
 		return
 	}
 }
 
 // Function to show status
-func ShowStatus(ctx context.CommandContext, gitCtx GitContext) {
-	releases, err := getReleases(ctx, gitCtx)
+func ShowStatus(ctx interfaces.GitRelContext) {
+	releases, err := getReleases(ctx)
 	if err != nil {
-		fmt.Println(err)
+		ctx.Output().Println(err)
 		return
 	}
 
@@ -143,33 +133,33 @@ func ShowStatus(ctx context.CommandContext, gitCtx GitContext) {
 	})
 
 	if len(versions) == 0 {
-		fmt.Println("No existing release branches found.")
-		fmt.Println("Remote:", ctx.GetRemote())
+		ctx.Output().Println("No existing release branches found.")
+		ctx.Output().Println("Remote:", ctx.Options().GetRemote())
 		return
 	}
 
-	currentVersion := getCurrentVersionFromBranch(ctx, gitCtx)
+	currentVersion := getCurrentVersionFromBranch(ctx)
 
 	if currentVersion != "" {
-		fmt.Println("Current version:", currentVersion)
+		ctx.Output().Println("Current version:", currentVersion)
 	}
 
-	fmt.Println("Latest version:", versions[len(versions)-1])
-	fmt.Println("Remote:", ctx.GetRemote())
-	fmt.Println("Previous versions:")
+	ctx.Output().Println("Latest version:", versions[len(versions)-1])
+	ctx.Output().Println("Remote:", ctx.Options().GetRemote())
+	ctx.Output().Println("Previous versions:")
 	const maxVersions = 5
 	for i := len(versions) - 2; i >= 0 && i >= len(versions)-maxVersions; i-- {
-		fmt.Printf(" - %s\n", versions[i])
+		ctx.Output().Printf(" - %s\n", versions[i])
 	}
 
 	if len(versions) > maxVersions {
-		fmt.Printf("(%d more...)\n", len(versions)-maxVersions)
+		ctx.Output().Printf("(%d more...)\n", len(versions)-maxVersions)
 	}
 }
 
 // Function to increment and create a new branch
-func IncrementAndCreateBranch(part string, ctx context.CommandContext, gitCtx GitContext) {
-	highestVersion := getHighestVersion(ctx, gitCtx)
+func IncrementAndCreateBranch(part string, ctx interfaces.GitRelContext) {
+	highestVersion := getHighestVersion(ctx)
 	newVersion := ""
 	if highestVersion == "0.0.0" {
 		newVersion = "0.1.0"
@@ -177,11 +167,11 @@ func IncrementAndCreateBranch(part string, ctx context.CommandContext, gitCtx Gi
 		newVersion = semver.IncrementVersion(highestVersion, part)
 	}
 
-	CreateReleaseBranch(newVersion, ctx, gitCtx)
+	CreateReleaseBranch(newVersion, ctx)
 }
 
 // Function to list git remotes
-func GetDefaultRemote(gitCtx GitContext) (string, error) {
+func GetDefaultRemote(gitCtx interfaces.GitContext) (string, error) {
 	remotes, err := gitCtx.ListRemotes()
 	if err != nil {
 		return "", fmt.Errorf("error listing git remotes: %w", err)
