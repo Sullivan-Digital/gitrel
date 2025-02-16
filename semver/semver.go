@@ -1,4 +1,4 @@
-package main
+package semver
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 )
 
 // Function to validate semver format
-func validateSemver(version string) bool {
+func ValidateSemver(version string) bool {
 	re := regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-]+)?$`)
 	return re.MatchString(version)
 }
 
 // Function to increment version
-func incrementVersion(version, part string) string {
+func IncrementVersion(version, part string) string {
 	parts := strings.Split(version, "-")
 	baseVersion := parts[0]
 	preRelease := ""
@@ -55,7 +55,7 @@ func atoi(s string) int {
 }
 
 // Function to compare two semantic versions
-func compareSemver(v1, v2 string) bool {
+func CompareSemver(v1, v2 string) bool {
 	v1Parts := strings.Split(v1, ".")
 	v2Parts := strings.Split(v2, ".")
 

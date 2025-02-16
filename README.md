@@ -8,6 +8,11 @@ GitRel can be configured using a `.gitrelrc` file. The configuration file can be
 
 - `alwaysFetch=true|false`: If set to true, the `--fetch` flag will be presumed for all commands that accept it.
 - `remote=<git remote name>`: Specifies the git remote name to use. Defaults to `origin` if not set.
+- `localBranchName=<branch name>`: Specifies the local branch name to use. Defaults to `release/%v` if not set.
+- `remoteBranchName=<branch name>`: Specifies the remote branch name to use. Defaults to `release/%v` if not set.
+
+### Local and Remote Branch Names
+Use the `%v` placeholder in the branch names to insert the semantic version.
 
 ## Global Flags
 
