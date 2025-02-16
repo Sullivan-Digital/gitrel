@@ -22,6 +22,11 @@ var checkoutCmd = &cobra.Command{
 	},
 }
 
+var checkoutVersionCmd = &cobra.Command{
+	Use:   "<version>",
+	Short: "Checkout the release branch matching the specified version prefix",
+}
+
 func init() {
 	checkoutCmd.AddCommand(checkoutVersionCmd)
 	checkoutCmd.AddCommand(checkoutLatestCmd)
