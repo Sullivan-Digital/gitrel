@@ -70,7 +70,8 @@ func (c *TestGitContext) SwitchToNewBranch(branchName string) error {
 		return fmt.Errorf("branch %s already exists", branchName)
 	}
 
-	c.SideEffects = append(c.SideEffects, EffectSwitchToNewBranch(branchName))
+	c.SideEffects = append(c.SideEffects, EffectCreateBranch(branchName))
+	c.SideEffects = append(c.SideEffects, EffectCheckoutBranch(branchName))
 	c.PreviousBranch = c.CurrentBranch
 	c.CurrentBranch = branchName
 	return nil

@@ -27,7 +27,7 @@ func NewCmdGitRelContext() (*CmdGitRelContext, error) {
 	return ctx, nil
 }
 
-func (c *CmdGitRelContext) Options() interfaces.CommandContext {
+func (c *CmdGitRelContext) Command() interfaces.CommandContext {
 	return c.options
 }
 

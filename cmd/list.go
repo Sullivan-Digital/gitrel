@@ -28,6 +28,11 @@ func runListCmd(ctx interfaces.GitRelContext) {
 		return
 	}
 
+	if len(releaseBranches) == 0 {
+		ctx.Output().Println("No release branches found.")
+		return
+	}
+
 	ctx.Output().Println("Current release branches:")
 	for _, branch := range releaseBranches {
 		if branch.IsLocalOnly() {

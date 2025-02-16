@@ -8,14 +8,16 @@ import (
 	"sort"
 )
 
-// Function to fetch and parse branches
+// getReleases returns an ordered list of releases
 func getReleases(ctx interfaces.GitRelContext) ([]*ReleaseInfo, error) {
-	if ctx.Options().GetFetch() {
-		ctx.Output().Printf("Fetching from remote '%s'...\n", ctx.Options().GetRemote())
-		err := ctx.Git().FetchRemote(ctx.Options().GetRemote())
+	if ctx.Command().GetOptFetch() && !ctx.Command().GetFetched() {
+		ctx.Output().Printf("Fetching from remote '%s'...\n", ctx.Command().GetOptRemote())
+		err := ctx.Git().FetchRemote(ctx.Command().GetOptRemote())
 		if err != nil {
 			return nil, fmt.Errorf("error fetching from remote: %w", err)
 		}
+
+		ctx.Command().SetFetched(true)
 	}
 
 	branches, err := ctx.Git().ListAllBranches()
@@ -23,8 +25,8 @@ func getReleases(ctx interfaces.GitRelContext) ([]*ReleaseInfo, error) {
 		return nil, fmt.Errorf("error listing branches: %w", err)
 	}
 
-	remoteBranchPattern := "remotes/" + ctx.Options().GetRemote() + "/" + ctx.Options().GetRemoteBranchName()
-	localBranchPattern := ctx.Options().GetLocalBranchName()
+	remoteBranchPattern := "remotes/" + ctx.Command().GetOptRemote() + "/" + ctx.Command().GetOptRemoteBranchName()
+	localBranchPattern := ctx.Command().GetOptLocalBranchName()
 
 	releaseMap := make(map[string]*ReleaseInfo)
 	for _, branch := range branches {
@@ -35,6 +37,10 @@ func getReleases(ctx interfaces.GitRelContext) ([]*ReleaseInfo, error) {
 		} else if version = getVersionFromBranch(branch, localBranchPattern); version != "" {
 			branchType = "local"
 		} else {
+			continue
+		}
+
+		if !semver.ValidateSemver(version) {
 			continue
 		}
 
@@ -99,9 +105,9 @@ func getCurrentVersionFromBranch(ctx interfaces.GitRelContext) string {
 		return ""
 	}
 
-	version := getVersionFromBranch(branchName, ctx.Options().GetLocalBranchName())
+	version := getVersionFromBranch(branchName, ctx.Command().GetOptLocalBranchName())
 	if version == "" {
-		version = getVersionFromBranch(branchName, ctx.Options().GetRemoteBranchName())
+		version = getVersionFromBranch(branchName, ctx.Command().GetOptRemoteBranchName())
 	}
 
 	return version

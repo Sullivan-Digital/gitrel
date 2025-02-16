@@ -1,8 +1,11 @@
 package interfaces
 
 type CommandContext interface {
-	GetFetch() bool
-	GetRemote() string
-	GetLocalBranchName() string
-	GetRemoteBranchName() string
+	GetOptFetch() bool
+	GetOptRemote() string
+	GetOptLocalBranchName() string
+	GetOptRemoteBranchName() string
+
+	SetFetched(fetched bool)
+	GetFetched() bool
 }

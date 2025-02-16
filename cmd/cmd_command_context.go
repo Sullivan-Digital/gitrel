@@ -45,20 +45,30 @@ type CmdCommandContext struct {
 	Remote           string
 	LocalBranchName  string
 	RemoteBranchName string
+
+	fetched bool
 }
 
-func (c *CmdCommandContext) GetFetch() bool {
+func (c *CmdCommandContext) GetOptFetch() bool {
 	return c.Fetch
 }
 
-func (c *CmdCommandContext) GetRemote() string {
+func (c *CmdCommandContext) GetOptRemote() string {
 	return c.Remote
 }
 
-func (c *CmdCommandContext) GetLocalBranchName() string {
+func (c *CmdCommandContext) GetOptLocalBranchName() string {
 	return c.LocalBranchName
 }
 
-func (c *CmdCommandContext) GetRemoteBranchName() string {
+func (c *CmdCommandContext) GetOptRemoteBranchName() string {
 	return c.RemoteBranchName
+}
+
+func (c *CmdCommandContext) SetFetched(fetched bool) {
+	c.fetched = fetched
+}
+
+func (c *CmdCommandContext) GetFetched() bool {
+	return c.fetched
 }

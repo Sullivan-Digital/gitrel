@@ -5,6 +5,8 @@ type TestCommandContext struct {
 	Remote           string
 	LocalBranchName  string
 	RemoteBranchName string
+
+	fetched bool
 }
 
 func DefaultTestCommandContext() *TestCommandContext {
@@ -13,21 +15,31 @@ func DefaultTestCommandContext() *TestCommandContext {
 		Remote:           "origin",
 		LocalBranchName:  "release/%v",
 		RemoteBranchName: "release/%v",
+
+		fetched: false,
 	}
 }
 
-func (c *TestCommandContext) GetFetch() bool {
+func (c *TestCommandContext) GetOptFetch() bool {
 	return c.Fetch
 }
 
-func (c *TestCommandContext) GetRemote() string {
+func (c *TestCommandContext) GetOptRemote() string {
 	return c.Remote
 }
 
-func (c *TestCommandContext) GetLocalBranchName() string {
+func (c *TestCommandContext) GetOptLocalBranchName() string {
 	return c.LocalBranchName
 }
 
-func (c *TestCommandContext) GetRemoteBranchName() string {
+func (c *TestCommandContext) GetOptRemoteBranchName() string {
 	return c.RemoteBranchName
+}
+
+func (c *TestCommandContext) SetFetched(fetched bool) {
+	c.fetched = fetched
+}
+
+func (c *TestCommandContext) GetFetched() bool {
+	return c.fetched
 }

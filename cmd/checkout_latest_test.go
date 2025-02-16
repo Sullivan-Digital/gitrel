@@ -52,5 +52,6 @@ func TestCheckoutLatest_ChecksOutLatestRelease(t *testing.T) {
         "Previous versions:",
         " - 2.0.0",
         " - 1.0.0",
+		"(no more versions)",
 	)
 }

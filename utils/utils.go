@@ -16,3 +16,13 @@ func MapKeys[K comparable, V any](m map[K]V) []K {
 	}
 	return keys
 }
+
+func FilterSlice[T any](slice []T, predicate func(T) bool) []T {
+	result := make([]T, 0, len(slice))
+	for _, v := range slice {
+		if predicate(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}

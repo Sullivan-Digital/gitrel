@@ -1,7 +1,7 @@
 package interfaces
 
 type GitRelContext interface {
-	Options() CommandContext
+	Command() CommandContext
 	Git() GitContext
 	Output() OutputContext
 }

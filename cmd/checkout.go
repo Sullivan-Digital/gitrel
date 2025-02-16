@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 var checkoutCmd = &cobra.Command{
 	Use:   "checkout",
 	Short: "Checkout a release branch",
@@ -17,7 +16,6 @@ var checkoutCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
 
 		runCheckoutCmd(args, ctx)
 		return nil
@@ -30,6 +28,10 @@ func init() {
 }
 
 func runCheckoutCmd(args []string, ctx interfaces.GitRelContext) {
-	git.CheckoutVersion(args[0], ctx)
+	err := git.CheckoutVersion(args[0], ctx)
+	if err != nil {
+		ctx.Output().Println(err)
+	}
+
 	git.ShowStatus(ctx)
 }

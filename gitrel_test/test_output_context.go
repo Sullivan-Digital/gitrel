@@ -43,6 +43,7 @@ func (c *TestOutputContext) AssertOutputLines(expectedOutputLines ...string) {
 }
 
 func printMismatchedOutput(t *testing.T, expectedOutput string, actualOutput string) {
+	t.Helper()
 	t.Fatalf(strings.Join([]string{
 		"Inconsistent output - expected vs. actual:",
 		"----------------expected----------------",

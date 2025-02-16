@@ -9,7 +9,7 @@ import (
 
 // Function to validate semver format
 func ValidateSemver(version string) bool {
-	re := regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-]+)?$`)
+	re := regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$`)
 	return re.MatchString(version)
 }
 
@@ -54,7 +54,7 @@ func atoi(s string) int {
 	return i
 }
 
-// Function to compare two semantic versions
+// true if v1 is less than v2
 func CompareSemver(v1, v2 string) bool {
 	v1Parts := strings.Split(v1, ".")
 	v2Parts := strings.Split(v2, ".")

@@ -23,7 +23,7 @@ func (c *TestGitRelContext) Git() interfaces.GitContext {
 	return c.GitContext
 }
 
-func (c *TestGitRelContext) Options() interfaces.CommandContext {
+func (c *TestGitRelContext) Command() interfaces.CommandContext {
 	return c.CommandContext
 }
 
