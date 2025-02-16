@@ -12,7 +12,8 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new release branch",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
@@ -26,7 +27,7 @@ var newCmd = &cobra.Command{
 			return errors.New("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
 		}
 
-		git.CreateReleaseBranch(version, ctx)
+		git.CreateReleaseBranch(version, ctx, gitCtx)
 
 		return nil
 	},

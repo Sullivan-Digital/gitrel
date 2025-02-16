@@ -12,13 +12,15 @@ var checkoutCmd = &cobra.Command{
 	Short: "Checkout a release branch",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
 
-		git.CheckoutVersion(args[0], ctx)
-		git.ShowStatus(ctx)
+
+		git.CheckoutVersion(args[0], ctx, gitCtx)
+		git.ShowStatus(ctx, gitCtx)
 		return nil
 	},
 }

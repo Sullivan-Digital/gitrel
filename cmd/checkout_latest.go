@@ -10,13 +10,15 @@ var checkoutLatestCmd = &cobra.Command{
 	Use:   "latest",
 	Short: "Checkout the latest release branch",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
 
-		git.CheckoutVersion("latest", ctx)
-		git.ShowStatus(ctx)
+
+		git.CheckoutVersion("latest", ctx, gitCtx)
+		git.ShowStatus(ctx, gitCtx)
 		return nil
 	},
 }

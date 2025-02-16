@@ -10,7 +10,7 @@ import (
 
 var commandContext context.CommandContext
 
-func getCommandContext() (context.CommandContext, error) {
+func getCommandContext(gitCtx git.GitContext) (context.CommandContext, error) {
 	if commandContext != nil {
 		return commandContext, nil
 	}
@@ -25,7 +25,7 @@ func getCommandContext() (context.CommandContext, error) {
 
 	ctx.Remote = utils.CoalesceStr(RemoteFlag, config.RemoteConfig, "")
 	if ctx.Remote == "" {
-		remote, err := git.GetDefaultRemote()
+		remote, err := git.GetDefaultRemote(gitCtx)
 		if err != nil {
 			return nil, err
 		}

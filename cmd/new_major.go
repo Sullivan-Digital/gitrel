@@ -11,12 +11,13 @@ var newMajorCmd = &cobra.Command{
 	Use:   "major",
 	Short: "Increment the major version of the latest release",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
 
-		git.IncrementAndCreateBranch("major", ctx)
+		git.IncrementAndCreateBranch("major", ctx, gitCtx)
 		return nil
 	},
 }

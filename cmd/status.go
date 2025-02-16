@@ -10,12 +10,13 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show the current version and the 5 most recent versions",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
 
-		git.ShowStatus(ctx)
+		git.ShowStatus(ctx, gitCtx)
 		return nil
 	},
 }

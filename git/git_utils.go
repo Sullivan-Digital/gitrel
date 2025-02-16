@@ -6,28 +6,26 @@ import (
 	"gitrel/semver"
 	"gitrel/utils"
 	"sort"
-	"strings"
 )
 
 // Function to fetch and parse branches
-func getReleases(ctx context.CommandContext) ([]*ReleaseInfo, error) {
+func getReleases(ctx context.CommandContext, gitCtx GitContext) ([]*ReleaseInfo, error) {
 	if ctx.GetFetch() {
 		fmt.Printf("Fetching from remote '%s'...\n", ctx.GetRemote())
-		_, err := execCommand("git", "fetch", ctx.GetRemote())
+		err := gitCtx.FetchRemote(ctx.GetRemote())
 		if err != nil {
 			return nil, fmt.Errorf("error fetching from remote: %w", err)
 		}
 	}
 
-	output, err := execCommand("git", "branch", "-a")
+	branches, err := gitCtx.ListAllBranches()
 	if err != nil {
 		return nil, fmt.Errorf("error listing branches: %w", err)
 	}
 
-	remoteBranchPattern := ctx.GetRemote() + "/" + ctx.GetRemoteBranchName()
+	remoteBranchPattern := "remotes/" + ctx.GetRemote() + "/" + ctx.GetRemoteBranchName()
 	localBranchPattern := ctx.GetLocalBranchName()
 
-	branches := strings.Split(output, "\n")
 	releaseMap := make(map[string]*ReleaseInfo)
 	for _, branch := range branches {
 		branchType := ""
@@ -49,8 +47,8 @@ func getReleases(ctx context.CommandContext) ([]*ReleaseInfo, error) {
 
 		info := releaseMap[version]
 		info.Branches = append(info.Branches, ReleaseBranch{
-			Branch: branch,
-			Type:   branchType,
+			BranchName: branch,
+			Type:       branchType,
 		})
 	}
 
@@ -65,6 +63,48 @@ func getReleases(ctx context.CommandContext) ([]*ReleaseInfo, error) {
 	}
 
 	return releaseInfos, nil
+}
+
+// Function to get the highest version from release branches
+func getHighestVersion(ctx context.CommandContext, gitCtx GitContext) string {
+	releases, err := getReleases(ctx, gitCtx)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	var versions []string
+	for _, release := range releases {
+		version := release.Version
+		if semver.ValidateSemver(version) {
+			versions = append(versions, version)
+		}
+	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		return semver.CompareSemver(versions[i], versions[j])
+	})
+
+	if len(versions) > 0 {
+		return versions[len(versions)-1]
+	}
+	return "0.0.0"
+}
+
+// Function to find the current branch and determine the version
+func getCurrentVersionFromBranch(ctx context.CommandContext, gitCtx GitContext) string {
+	branchName, err := gitCtx.GetCurrentBranch()
+	if err != nil {
+		fmt.Println("Error finding current branch:", err)
+		return ""
+	}
+
+	version := getVersionFromBranch(branchName, ctx.GetLocalBranchName())
+	if version == "" {
+		version = getVersionFromBranch(branchName, ctx.GetRemoteBranchName())
+	}
+
+	return version
 }
 
 func replaceInBranchPattern(branchPattern string, version string) string {

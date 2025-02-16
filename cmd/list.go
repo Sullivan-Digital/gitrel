@@ -11,12 +11,13 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List current release branches",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := getCommandContext()
+		gitCtx := git.NewCmdGitContext()
+		ctx, err := getCommandContext(gitCtx)
 		if err != nil {
 			return err
 		}
 
-		releaseBranches, err := git.ListReleases(ctx)
+		releaseBranches, err := git.ListReleases(ctx, gitCtx)
 		if err != nil {
 			return err
 		}
