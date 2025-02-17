@@ -122,3 +122,31 @@ func getVersionFromBranch(branch string, branchPattern string) string {
 	fmt.Sscanf(branch, branchPattern, &version)
 	return version
 }
+
+func getOrCreateLocalBranch(release *ReleaseInfo, ctx interfaces.GitRelContext) (*ReleaseBranch, error) {
+	localBranch := release.GetFirstLocalBranch()
+	if localBranch != nil {
+		return localBranch, nil
+	}
+
+	remoteBranch := release.GetFirstRemoteBranch()
+	if remoteBranch == nil {
+		return nil, fmt.Errorf("no remote branch found for release: %s", release.Version)
+	}
+
+	// Create the local branch
+	localBranchName := replaceInBranchPattern(ctx.Command().GetOptLocalBranchName(), release.Version)
+	err := ctx.Git().CreateBranchAt(localBranchName, remoteBranch.BranchName)
+	if err != nil {
+		return nil, fmt.Errorf("error creating local branch: %w", err)
+	}
+
+	localBranch = &ReleaseBranch{
+		BranchName: localBranchName,
+		Type:       "local",
+	}
+
+	release.Branches = append(release.Branches, *localBranch)
+
+	return localBranch, nil
+}

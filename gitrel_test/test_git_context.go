@@ -8,12 +8,13 @@ import (
 )
 
 type TestGitContext struct {
-	Branches       []string
-	CurrentBranch  string
-	PreviousBranch string
-	Remotes        []string
-	SideEffects    []TestGitSideEffect
-	testCtx        *testing.T
+	Branches                []string
+	CurrentBranch           string
+	PreviousBranch          string
+	Remotes                 []string
+	SideEffects             []TestGitSideEffect
+	HasUncommittedChangesFl bool
+	testCtx                 *testing.T
 }
 
 func DefaultTestGitContext(t *testing.T) *TestGitContext {
@@ -34,12 +35,17 @@ func DefaultTestGitContext(t *testing.T) *TestGitContext {
 			"remotes/origin/release/1.1.1",
 			"remotes/origin/release/2.0.0",
 		},
-		CurrentBranch:  "main",
-		PreviousBranch: "",
-		Remotes:        []string{"origin"},
-		SideEffects:    []TestGitSideEffect{},
-		testCtx:        t,
+		CurrentBranch:           "main",
+		PreviousBranch:          "",
+		Remotes:                 []string{"origin"},
+		SideEffects:             []TestGitSideEffect{},
+		HasUncommittedChangesFl: false,
+		testCtx:                 t,
 	}
+}
+
+func (c *TestGitContext) HasUncommittedChanges() (bool, error) {
+	return c.HasUncommittedChangesFl, nil
 }
 
 func (c *TestGitContext) FetchRemote(remote string) error {
@@ -61,7 +67,13 @@ func (c *TestGitContext) CheckoutBranch(branchName string) error {
 	}
 
 	c.SideEffects = append(c.SideEffects, EffectCheckoutBranch(branchName))
+	c.PreviousBranch = c.CurrentBranch
 	c.CurrentBranch = branchName
+	return nil
+}
+
+func (c *TestGitContext) CreateBranchAt(branchName string, commitish string) error {
+	c.SideEffects = append(c.SideEffects, EffectCreateBranchAt(branchName, commitish))
 	return nil
 }
 
@@ -78,7 +90,7 @@ func (c *TestGitContext) SwitchToNewBranch(branchName string) error {
 }
 
 func (c *TestGitContext) SwitchBack() error {
-	c.SideEffects = append(c.SideEffects, EffectSwitchBack())
+	c.SideEffects = append(c.SideEffects, EffectCheckoutBranch(c.PreviousBranch))
 
 	prev := c.PreviousBranch
 	c.PreviousBranch = c.CurrentBranch
@@ -97,6 +109,11 @@ func (c *TestGitContext) GetCurrentBranch() (string, error) {
 
 func (c *TestGitContext) ListRemotes() ([]string, error) {
 	return c.Remotes, nil
+}
+
+func (c *TestGitContext) MergeBranch(branchName string) error {
+	c.SideEffects = append(c.SideEffects, EffectMergeBranch(branchName))
+	return nil
 }
 
 func (c *TestGitContext) AssertNoSideEffects() {

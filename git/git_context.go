@@ -11,6 +11,15 @@ func NewCmdGitContext() *CmdGitContext {
 	return &CmdGitContext{}
 }
 
+func (c *CmdGitContext) HasUncommittedChanges() (bool, error) {
+	output, err := _execCommand("git", "status", "--porcelain")
+	if err != nil {
+		return false, err
+	}
+	
+	return output != "", nil
+}
+
 func (c *CmdGitContext) FetchRemote(remote string) error {
 	_, err := _execCommand("git", "fetch", remote)
 	return err
@@ -73,6 +82,11 @@ func (c *CmdGitContext) GetCurrentBranch() (string, error) {
 	return strings.TrimSpace(output), nil
 }
 
+func (c *CmdGitContext) CreateBranchAt(branchName string, commitish string) error {
+	_, err := _execCommand("git", "branch", branchName, commitish)
+	return err
+}
+
 func (c *CmdGitContext) ListRemotes() ([]string, error) {
 	output, err := _execCommand("git", "remote")
 	if err != nil {
@@ -88,6 +102,11 @@ func (c *CmdGitContext) ListRemotes() ([]string, error) {
 	}
 
 	return remotes, nil
+}
+
+func (c *CmdGitContext) MergeBranch(branchName string) error {
+	_, err := _execCommand("git", "merge", branchName)
+	return err
 }
 
 // Function to execute a shell command and return its output

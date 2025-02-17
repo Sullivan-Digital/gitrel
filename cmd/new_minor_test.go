@@ -14,7 +14,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion(t *testing.T) {
 		"release/1.0.0",
 		"remotes/origin/release/1.0.0",
 	}
-
+	ctx.GitContext.CurrentBranch = "main"
 	// Act
 	runNewMinorCmd(ctx)
 
@@ -23,7 +23,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion(t *testing.T) {
 		gitrel_test.EffectCreateBranch("release/1.1.0"),
 		gitrel_test.EffectCheckoutBranch("release/1.1.0"),
 		gitrel_test.EffectPushBranch("origin", "release/1.1.0"),
-		gitrel_test.EffectSwitchBack(),
+		gitrel_test.EffectCheckoutBranch("main"),
 	)
 	ctx.OutputContext.AssertOutputLines(
 		"Created new release branch: release/1.1.0",
@@ -40,6 +40,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion_FromNoPreviousReleases(t *testing
 		"main",
 		"remotes/origin/main",
 	}
+	ctx.GitContext.CurrentBranch = "main"
 
 	// Act
 	runNewMinorCmd(ctx)
@@ -49,7 +50,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion_FromNoPreviousReleases(t *testing
 		gitrel_test.EffectCreateBranch("release/0.1.0"),
 		gitrel_test.EffectCheckoutBranch("release/0.1.0"),
 		gitrel_test.EffectPushBranch("origin", "release/0.1.0"),
-		gitrel_test.EffectSwitchBack(),
+		gitrel_test.EffectCheckoutBranch("main"),
 	)
 	ctx.OutputContext.AssertOutputLines(
 		"Created new release branch: release/0.1.0",
@@ -69,7 +70,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion_WithDifferentLocalBranchNamingCon
 		"v/1.0.0",
 		"remotes/origin/v/1.0.0",
 	}
-
+	ctx.GitContext.CurrentBranch = "main"
 	// Act
 	runNewMinorCmd(ctx)
 
@@ -78,7 +79,7 @@ func TestRunNewMinorCmd_IncrementsMinorVersion_WithDifferentLocalBranchNamingCon
 		gitrel_test.EffectCreateBranch("v/1.1.0"),
 		gitrel_test.EffectCheckoutBranch("v/1.1.0"),
 		gitrel_test.EffectPushBranch("origin", "v/1.1.0:release/1.1.0"),
-		gitrel_test.EffectSwitchBack(),
+		gitrel_test.EffectCheckoutBranch("main"),
 	)
 	ctx.OutputContext.AssertOutputLines(
 		"Created new release branch: v/1.1.0",

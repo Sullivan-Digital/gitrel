@@ -16,8 +16,12 @@ func EffectCheckoutBranch(branch string) TestGitSideEffect {
 	return TestGitSideEffect("checkout " + branch)
 }
 
-func EffectSwitchBack() TestGitSideEffect {
-	return TestGitSideEffect("switch -")
+func EffectCreateBranchAt(branch string, commitish string) TestGitSideEffect {
+	return TestGitSideEffect("create branch at " + branch + " " + commitish)
+}
+
+func EffectMergeBranch(branch string) TestGitSideEffect {
+	return TestGitSideEffect("merge " + branch)
 }
 
 func EffectPushBranch(remote string, branch string) TestGitSideEffect {

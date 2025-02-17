@@ -73,6 +73,93 @@ func CreateReleaseBranch(version string, ctx interfaces.GitRelContext) error {
 	return nil
 }
 
+func UpdateVersion(version string, ctx interfaces.GitRelContext) error {
+	// Validate that the version is a valid semantic version && has a branch
+	if !semver.ValidateSemver(version) {
+		return fmt.Errorf("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
+	}
+
+	hasUncommittedChanges, err := ctx.Git().HasUncommittedChanges()
+	if err != nil {
+		return err
+	}
+
+	if hasUncommittedChanges {
+		return fmt.Errorf("you have uncommitted changes. please commit or stash them before updating")
+	}
+
+	releases, err := getReleases(ctx)
+	if err != nil {
+		return err
+	}
+
+	var release *ReleaseInfo
+	if version == "latest" {
+		release = releases[len(releases)-1]
+	} else {
+		for _, r := range releases {
+			if r.Version == version {
+				release = r
+			}
+		}
+	}
+
+	if release == nil {
+		return fmt.Errorf("no release branch found for version: %s", version)
+	}
+
+	// Get the current branch
+	currentBranch, err := ctx.Git().GetCurrentBranch()
+	if err != nil {
+		return err
+	}
+
+	// Check out the branch for the version
+	localBranch, err := getOrCreateLocalBranch(release, ctx)
+	if err != nil {
+		return err
+	}
+
+	localBranchName := localBranch.BranchName
+	ctx.Output().Printf("Checking out %v...\n", localBranchName)
+
+	err = ctx.Git().CheckoutBranch(localBranchName)
+	if err != nil {
+		return err
+	}
+
+	// Merge in the original branch
+	ctx.Output().Printf("Merging %v into %v...\n", currentBranch, localBranchName)
+	err = ctx.Git().MergeBranch(currentBranch)
+	if err != nil {
+		return err
+	}
+
+	// Push the changes
+	remoteBranchName := replaceInBranchPattern(ctx.Command().GetOptRemoteBranchName(), version)
+	if localBranchName != remoteBranchName {
+		ctx.Output().Printf("Pushing %v to %v (%v)...\n", localBranchName, ctx.Command().GetOptRemote(), remoteBranchName)
+	} else {
+		ctx.Output().Printf("Pushing %v to %v...\n", localBranchName, ctx.Command().GetOptRemote())
+	}
+
+	err = ctx.Git().PushBranch(ctx.Command().GetOptRemote(), localBranchName+":"+remoteBranchName)
+	if err != nil {
+		return err
+	}
+
+	ctx.Output().Println("Pushed!")
+
+	// Switch back to the original branch
+	err = ctx.Git().SwitchBack()
+	if err != nil {
+		return err
+	}
+
+	ctx.Output().Printf("Switched back to branch: %v\n", currentBranch)
+	return nil
+}
+
 // Function to checkout the latest release branch matching the specified version prefix
 func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) error {
 	releases, err := getReleases(ctx)
@@ -96,26 +183,14 @@ func CheckoutVersion(prefix string, ctx interfaces.GitRelContext) error {
 	})
 
 	latestRelease := matchingReleases[len(matchingReleases)-1]
-	branch := latestRelease.GetFirstLocalBranch()
-	if branch != nil {
-		ctx.Output().Printf("Checking out release branch: %s\n", branch.BranchName)
-		return ctx.Git().CheckoutBranch(branch.BranchName)
-	}
 
-	remoteBranch := latestRelease.GetFirstRemoteBranch()
-	if remoteBranch == nil {
-		return fmt.Errorf("no release branches found for matching version: %s", prefix)
-	}
-
-	localBranchName := replaceInBranchPattern(ctx.Command().GetOptLocalBranchName(), latestRelease.Version)
-	ctx.Output().Printf("Creating local branch %s from remote branch %s\n", localBranchName, remoteBranch.BranchName)
-
-	err = ctx.Git().CheckoutBranch(remoteBranch.BranchName)
+	branch, err := getOrCreateLocalBranch(latestRelease, ctx)
 	if err != nil {
 		return err
 	}
 
-	err = ctx.Git().SwitchToNewBranch(localBranchName)
+	branchName := branch.BranchName
+	err = ctx.Git().CheckoutBranch(branchName)
 	if err != nil {
 		return err
 	}
