@@ -39,4 +39,5 @@ func init() {
 	rootCmd.AddCommand(statusCmd)
 	rootCmd.AddCommand(checkoutCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(pushCmd)
 }
