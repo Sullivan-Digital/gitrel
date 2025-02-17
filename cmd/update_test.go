@@ -34,6 +34,35 @@ func TestRunUpdateCmd_PushesToExistingReleaseBranch(t *testing.T) {
 	)
 }
 
+func TestRunUpdateCmd_PushesToLatestReleaseBranch_WhenLatestVersionIsSpecified(t *testing.T) {
+	// Arrange
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
+	ctx.GitContext.Branches = []string{
+		"main",
+		"release/1.0.0",
+		"release/2.0.0",
+	}
+	ctx.GitContext.CurrentBranch = "main"
+
+	// Act
+	runUpdateCmd([]string{"latest"}, ctx)
+
+	// Assert
+	ctx.GitContext.AssertSideEffectsAreExactly(
+		gitrel_test.EffectCheckoutBranch("release/2.0.0"),
+		gitrel_test.EffectMergeBranch("main"),
+		gitrel_test.EffectPushBranch("origin", "release/2.0.0"),
+		gitrel_test.EffectCheckoutBranch("main"),
+	)
+	ctx.OutputContext.AssertOutputLines(
+		"Checking out release/2.0.0...",
+		"Merging main into release/2.0.0...",
+		"Pushing release/2.0.0 to origin...",
+		"Pushed!",
+		"Switched back to branch: main",
+	)
+}
+
 func TestRunUpdateCmd_PrintsErrorWhenUncommittedChanges(t *testing.T) {
 	// Arrange
 	ctx := gitrel_test.DefaultTestGitRelContext(t)

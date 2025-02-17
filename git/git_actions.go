@@ -73,10 +73,10 @@ func CreateReleaseBranch(version string, ctx interfaces.GitRelContext) error {
 	return nil
 }
 
-func UpdateVersion(version string, ctx interfaces.GitRelContext) error {
+func UpdateVersion(versionish string, ctx interfaces.GitRelContext) error {
 	// Validate that the version is a valid semantic version && has a branch
-	if !semver.ValidateSemver(version) {
-		return fmt.Errorf("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1)")
+	if !(semver.ValidateSemver(versionish) || versionish == "latest") {
+		return fmt.Errorf("invalid version format. please use semantic versioning (e.g., 1.0.0, 1.2.3-alpha, 2.0.0+build.1) or 'latest'")
 	}
 
 	hasUncommittedChanges, err := ctx.Git().HasUncommittedChanges()
@@ -94,18 +94,18 @@ func UpdateVersion(version string, ctx interfaces.GitRelContext) error {
 	}
 
 	var release *ReleaseInfo
-	if version == "latest" {
+	if versionish == "latest" {
 		release = releases[len(releases)-1]
 	} else {
 		for _, r := range releases {
-			if r.Version == version {
+			if r.Version == versionish {
 				release = r
 			}
 		}
 	}
 
 	if release == nil {
-		return fmt.Errorf("no release branch found for version: %s", version)
+		return fmt.Errorf("no release branch found for version: %s", versionish)
 	}
 
 	// Get the current branch
@@ -136,7 +136,7 @@ func UpdateVersion(version string, ctx interfaces.GitRelContext) error {
 	}
 
 	// Push the changes
-	remoteBranchName := replaceInBranchPattern(ctx.Command().GetOptRemoteBranchName(), version)
+	remoteBranchName := replaceInBranchPattern(ctx.Command().GetOptRemoteBranchName(), release.Version)
 	if localBranchName != remoteBranchName {
 		ctx.Output().Printf("Pushing %v to %v (%v)...\n", localBranchName, ctx.Command().GetOptRemote(), remoteBranchName)
 	} else {
