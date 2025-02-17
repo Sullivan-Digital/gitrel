@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"gitrel/git"
 	"gitrel/gitrel_test"
 	"testing"
 )
@@ -24,12 +25,9 @@ func TestRunCheckoutCmd_ChecksOutSpecifiedVersion_Exact(t *testing.T) {
 	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("release/2.0.0"))
 	ctx.OutputContext.AssertOutputLines(
 		"Checking out release branch: release/2.0.0",
-		"Current version: 2.0.0",
-		"Latest version: 2.0.0",
-		"Remote: origin",
-		"Previous versions:",
-		" - 1.0.0",
-		"(no more versions)",
+		gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }
 
@@ -52,13 +50,9 @@ func TestRunCheckoutCmd_ChecksOutLatestVersion_Minor(t *testing.T) {
 	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("release/1.3.10"))
 	ctx.OutputContext.AssertOutputLines(
 		"Checking out release branch: release/1.3.10",
-		"Current version: 1.3.10",
-		"Latest version: 1.10.0",
-		"Remote: origin",
-		"Previous versions:",
-		" - 1.3.9",
-		" - 1.2.500",
-		"(no more versions)",
+		gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }
 
@@ -82,15 +76,9 @@ func TestRunCheckoutCmd_ChecksOutLatestVersion_Major(t *testing.T) {
 	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("release/10.0.1"))
 	ctx.OutputContext.AssertOutputLines(
 		"Checking out release branch: release/10.0.1",
-		"Current version: 10.0.1",
-		"Latest version: 10.0.1",
-		"Remote: origin",
-		"Previous versions:",
-		" - 2.10.0",
-		" - 2.3.10",
-		" - 2.3.9",
-		" - 2.2.500",
-		"(no more versions)",
+		gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }
 
@@ -137,11 +125,9 @@ func TestRunCheckoutCmd_PrintsErrorIfVersionNotFound(t *testing.T) {
 
 	ctx.OutputContext.AssertOutputLines(
 		"no release branches found matching prefix: 2.0.0",
-		"Current version: (not on a release branch)",
-		"Latest version: 1.0.0",
-		"Remote: origin", 
-		"Previous versions:",
-		"(no more versions)",
+		gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }
 
@@ -162,11 +148,8 @@ func TestRunCheckoutCmd_ChecksOutSpecifiedVersion_WithDifferentBranchNamingConve
 	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("v/2.0.0"))
 	ctx.OutputContext.AssertOutputLines(
 		"Checking out release branch: v/2.0.0",
-		"Current version: 2.0.0",
-		"Latest version: 2.0.0",
-		"Remote: origin",
-		"Previous versions:",
-		" - 1.0.0",
-		"(no more versions)",
+		gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }

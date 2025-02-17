@@ -39,7 +39,7 @@ func (c *TestOutputContext) AssertOutput(expectedOutput string) {
 
 func (c *TestOutputContext) AssertOutputLines(expectedOutputLines ...string) {
 	c.testCtx.Helper()
-	c.AssertOutput(strings.Join(expectedOutputLines, "\n") + "\n")
+	c.AssertOutput(strings.TrimSpace(strings.Join(expectedOutputLines, "\n")) + "\n")
 }
 
 func printMismatchedOutput(t *testing.T, expectedOutput string, actualOutput string) {

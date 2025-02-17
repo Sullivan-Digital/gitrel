@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"gitrel/git"
 	"gitrel/gitrel_test"
 	"testing"
 )
@@ -46,12 +47,8 @@ func TestCheckoutLatest_ChecksOutLatestRelease(t *testing.T) {
 	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("release/3.0.0"))
 	ctx.OutputContext.AssertOutputLines(
 		"Checking out release branch: release/3.0.0",
-        "Current version: 3.0.0",
-        "Latest version: 3.0.0",
-        "Remote: origin",
-        "Previous versions:",
-        " - 2.0.0",
-        " - 1.0.0",
-		"(no more versions)",
+        gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
 	)
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gitrel/interfaces"
 	"gitrel/semver"
-	"gitrel/utils"
 	"sort"
 	"strings"
 )
@@ -148,30 +147,65 @@ func ShowStatus(ctx interfaces.GitRelContext) {
 	latestVersion := releases[len(releases)-1].Version
 	ctx.Output().Println("Latest version:", latestVersion)
 	ctx.Output().Println("Remote:", ctx.Command().GetOptRemote())
-	ctx.Output().Println("Previous versions:")
+	ctx.Output().Println("Other versions:")
 
-	// trim releases down to versions less than the current version
-	if currentVersion != "" {
-		releases = utils.FilterSlice(releases, func(release *ReleaseInfo) bool {
-			return semver.CompareSemver(release.Version, currentVersion)
-		})
-	} else {
-		releases = utils.FilterSlice(releases, func(release *ReleaseInfo) bool {
-			return semver.CompareSemver(release.Version, latestVersion)
-		})
+	type ReleaseMetadata struct {
+		Version string
+		Tags []string
 	}
 
-	const maxVersions = 5
-	for i := len(releases) - 1; i >= 0 && i >= len(releases)-maxVersions; i-- {
-		ctx.Output().Printf(" - %s\n", releases[i].Version)
+	releaseMetadata := []ReleaseMetadata{}
+	for i := len(releases) - 1; i >= 0; i-- {
+		tags := []string{}
+
+		if releases[i].Version == latestVersion {
+			tags = append(tags, "latest")
+		}
+		
+		if releases[i].Version == currentVersion {
+			tags = append(tags, "current")
+		}
+
+		md := ReleaseMetadata{
+			Version: releases[i].Version,
+			Tags: tags,
+		}
+
+		releaseMetadata = append(releaseMetadata, md)
 	}
 
-	if len(releases) > maxVersions {
-		ctx.Output().Printf("(%d more...)\n", len(releases)-maxVersions)
+	maxI := len(releaseMetadata) - 1
+	skippedVersion := false
+	for i, md := range releaseMetadata {
+		// Display versions on either side of a tag, and tagged versions themselves
+		print := false
+		if i < maxI && len(releaseMetadata[i+1].Tags) > 0 {
+			print = true
+		} else if i > 0 && len(releaseMetadata[i-1].Tags) > 0 {
+			print = true
+		} else if len(md.Tags) > 0 {
+			print = true
+		}
+
+		if !print {
+			skippedVersion = true
+			continue
+		}
+
+		if skippedVersion {
+			ctx.Output().Println(" - ...")
+			skippedVersion = false
+		}
+
+		if len(md.Tags) > 0 {
+			ctx.Output().Printf(" - %s (%s)\n", md.Version, strings.Join(md.Tags, ", "))
+		} else {
+			ctx.Output().Printf(" - %s\n", md.Version)
+		}
 	}
 
-	if len(releases) < maxVersions {
-		ctx.Output().Println("(no more versions)")
+	if skippedVersion {
+		ctx.Output().Println(" - ...")
 	}
 }
 
