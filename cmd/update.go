@@ -27,8 +27,14 @@ var updateVersionCmd = &cobra.Command{
 	Short: "Push changes to the release branch matching the specified version prefix",
 }
 
+var updateLatestCmd = &cobra.Command{
+	Use:   "latest",
+	Short: "Push changes to the latest release branch",
+}
+
 func init() {
 	updateCmd.AddCommand(updateVersionCmd)
+	updateCmd.AddCommand(updateLatestCmd)
 }
 
 func runUpdateCmd(args []string, ctx interfaces.GitRelContext) {
