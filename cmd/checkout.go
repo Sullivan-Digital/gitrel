@@ -8,7 +8,7 @@ import (
 )
 
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout",
+	Use:   "checkout [<version> | latest]",
 	Short: "Checkout a release branch",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -25,6 +25,11 @@ var checkoutCmd = &cobra.Command{
 var checkoutVersionCmd = &cobra.Command{
 	Use:   "<version>",
 	Short: "Checkout the release branch matching the specified version prefix",
+}
+
+var checkoutLatestCmd = &cobra.Command{
+	Use:   "latest",
+	Short: "Checkout the latest release branch",
 }
 
 func init() {

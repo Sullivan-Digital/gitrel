@@ -153,3 +153,51 @@ func TestRunCheckoutCmd_ChecksOutSpecifiedVersion_WithDifferentBranchNamingConve
 		}),
 	)
 }
+
+func TestCheckoutLatest_PrintsErrorIfNoReleases(t *testing.T) {
+	// Arrange
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
+	ctx.GitContext.Branches = []string{
+		"main",
+		"remotes/origin/main",
+	}
+
+	// Act
+	runCheckoutCmd([]string{"latest"}, ctx)
+
+	// Assert
+	if len(ctx.GitContext.SideEffects) != 0 {
+		t.Fatalf("expected 0 side effects, got %v", len(ctx.GitContext.SideEffects))
+	}
+
+	expectedOutput := "no release branches found matching prefix: latest\n"
+	ctx.OutputContext.AssertOutput(expectedOutput)
+}
+
+func TestCheckoutLatest_ChecksOutLatestRelease(t *testing.T) {
+	// Arrange
+	ctx := gitrel_test.DefaultTestGitRelContext(t)
+	ctx.GitContext.Branches = []string{
+		"main",
+		"remotes/origin/main",
+		"release/1.0.0",
+		"remotes/origin/release/1.0.0",
+		"release/3.0.0",
+		"remotes/origin/release/3.0.0",
+		"release/2.0.0",
+		"remotes/origin/release/2.0.0",
+	}
+
+	// Act
+	runCheckoutCmd([]string{"latest"}, ctx)
+
+	// Assert
+	ctx.GitContext.AssertSideEffectsAreExactly(gitrel_test.EffectCheckoutBranch("release/3.0.0"))
+	ctx.OutputContext.AssertOutputLines(
+		"Checking out release branch: release/3.0.0",
+        gitrel_test.GetStdOutIgnoreSideEffects(ctx, func(ctx2 *gitrel_test.TestGitRelContext) {
+			git.ShowStatus(ctx2)
+		}),
+	)
+}
+

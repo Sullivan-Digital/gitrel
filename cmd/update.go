@@ -8,7 +8,7 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update",
+	Use:   "update [<version> | latest]",
 	Short: "Push changes to a release branch",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
