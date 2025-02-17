@@ -30,6 +30,15 @@ var updateVersionCmd = &cobra.Command{
 var updateLatestCmd = &cobra.Command{
 	Use:   "latest",
 	Short: "Push changes to the latest release branch",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx, err := NewCmdGitRelContext()
+		if err != nil {
+			return err
+		}
+
+		runUpdateCmd([]string{"latest"}, ctx)
+		return nil
+	},
 }
 
 func init() {

@@ -30,6 +30,15 @@ var checkoutVersionCmd = &cobra.Command{
 var checkoutLatestCmd = &cobra.Command{
 	Use:   "latest",
 	Short: "Checkout the latest release branch",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx, err := NewCmdGitRelContext()
+		if err != nil {
+			return err
+		}
+
+		runCheckoutCmd([]string{"latest"}, ctx)
+		return nil
+	},
 }
 
 func init() {
